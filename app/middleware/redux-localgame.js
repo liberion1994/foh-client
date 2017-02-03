@@ -26,8 +26,20 @@ export const createLocalGameMiddleWare = room => store => {
             processEvent(events[i]);
 
         /****ai****/
-        if (room.game && room.game.currentTurn.remainedSid[0] != playerSid) {
+        if (room.game && !room.game.result && room.game.currentTurn.remainedSid[0] != playerSid) {
             setTimeout(() => {room.autoPlay()}, 2000);
+        }
+        for (let i = 0; i < len; i ++) {
+            if (events[i].type == Events.GameOver) {
+                setTimeout(() => {
+                    for (let i = 0; i < Properties.GamePlayers; i++) {
+                        if (i != playerSid) {
+                            room.onAction(i, Types.RoomAction.PREPARE, {playerName: 'Bot' + i});
+                        }
+                    }
+                }, 2000);
+                break;
+            }
         }
         /*****Remote above*****/
 
@@ -39,8 +51,8 @@ export const createLocalGameMiddleWare = room => store => {
         /*****Local*****/
         console.log('new action with events', receivedAction, receivedEvents);
 
+        console.log('!!', eid, store.getState().localGame.room.eid);
         if (eid != store.getState().localGame.room.eid + 1) {
-            //TODO dispatch the 'unsynchronized' action
             fetchGame();
         } else {
             parseAndDispatch(receivedAction, receivedEvents);
@@ -65,7 +77,7 @@ export const createLocalGameMiddleWare = room => store => {
                     action.content.inHand = room.game.cards[action.sid];
                 break;
             case Types.GameAction.PLAY_CARDS:
-                if (playerSid == action.sid)
+                if (playerSid == action.sid && room.game)
                     action.content.inHand = room.game.cards[action.sid];
                 break;
         }
@@ -211,7 +223,7 @@ export const createLocalGameMiddleWare = room => store => {
             case Events.DropCardsFail:
                 if (!force) {
                     store.dispatch(GameActions.on_drop_cards_fail_local(event.content));
-                    postpone(event, false, 2000);
+                    postpone(event, false, 0);
                 } else {
                     store.dispatch(GameActions.on_drop_cards_fail_restore_local(event.content));
                 }
@@ -219,11 +231,12 @@ export const createLocalGameMiddleWare = room => store => {
             case Events.GameOver:
                 store.dispatch(GameActions.on_game_over_local(event.content));
                 break;
-            //TODO levelup
+            case Events.LevelUp:
+                store.dispatch(GameActions.on_level_up(event.content));
+                break;
             default:
                 break;
 
-            //TODO 游戏结束要让机器人准备
         }
     }
 

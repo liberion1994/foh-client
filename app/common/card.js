@@ -21,9 +21,9 @@ class Card extends Component {
     componentWillAppear(callback) {
         const {enteringDelay, enteringDuration, enteringStyle} = this.props;
         this.setState({dynamicStyle: enteringStyle});
-        setTimeout(() => {
+        this.appearTimer = setTimeout(() => {
             this.setState({dynamicStyle: {transition: 'all ' + enteringDuration / 1000 + 's ease'}});
-            setTimeout(callback, enteringDuration);
+            this.appearTimer = setTimeout(callback, enteringDuration);
         }, enteringDelay);
     }
 
@@ -34,9 +34,9 @@ class Card extends Component {
     componentWillEnter(callback) {
         const {enteringDelay, enteringDuration, enteringStyle} = this.props;
         this.setState({dynamicStyle: enteringStyle});
-        setTimeout(() => {
+        this.enterTimer = setTimeout(() => {
             this.setState({dynamicStyle: {transition: 'all ' + enteringDuration / 1000 + 's ease'}});
-            setTimeout(callback, enteringDuration);
+            this.enterTimer = setTimeout(callback, enteringDuration);
         }, enteringDelay);
     }
 
@@ -46,14 +46,23 @@ class Card extends Component {
 
     componentWillLeave(callback) {
         const {leavingDelay, leavingDuration, leavingStyle} = this.props;
-        setTimeout(() => {
+        this.leaveTimer = setTimeout(() => {
             this.setState({dynamicStyle: { ...leavingStyle, transition: 'all ' + leavingDuration / 1000 + 's ease'}});
-            setTimeout(callback, leavingDuration);
+            this.leaveTimer = setTimeout(callback, leavingDuration);
         }, leavingDelay);
     }
 
     componentDidLeave() {
         this.setState({dynamicStyle: {}});
+    }
+
+    componentWillUnmount() {
+        if (this.appearTimer)
+            clearTimeout(this.appearTimer);
+        if (this.enterTimer)
+            clearTimeout(this.enterTimer);
+        if (this.leaveTimer)
+            clearTimeout(this.leaveTimer);
     }
 
     cardText() {

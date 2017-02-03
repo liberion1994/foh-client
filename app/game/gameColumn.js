@@ -3,23 +3,20 @@
  */
 import React, {Component} from "react";
 import Measure from "react-measure";
-import Chip from 'material-ui/Chip';
-import Avatar from 'material-ui/Avatar';
-import FlatButton from 'material-ui/FlatButton';
-import {CardGroupView} from '../common/card';
-import {blue50, red500, white} from "material-ui/styles/colors";
-import FontAwesome from 'react-fontawesome';
+import Chip from "material-ui/Chip";
+import Avatar from "material-ui/Avatar";
+import FlatButton from "material-ui/FlatButton";
+import Paper from 'material-ui/Paper';
 
-import Immutable from 'immutable';
-
-import ActionAssignmentInd from 'material-ui/svg-icons/action/assignment-ind';
-import ActionAssignmentLate from 'material-ui/svg-icons/action/assignment-late';
-import ActionAssignmentTurnedIn from 'material-ui/svg-icons/action/assignment-turned-in';
-import ToggleStar from 'material-ui/svg-icons/toggle/star';
-import ToggleStarBorder from 'material-ui/svg-icons/toggle/star-border';
-import ToggleStarHalf from 'material-ui/svg-icons/toggle/star-half';
-
-import {Types, CardUtil} from 'foh-core';
+import {CardGroupView} from "../common/card";
+import Immutable from "immutable";
+import ActionAssignmentInd from "material-ui/svg-icons/action/assignment-ind";
+import ActionAssignmentLate from "material-ui/svg-icons/action/assignment-late";
+import ActionAssignmentTurnedIn from "material-ui/svg-icons/action/assignment-turned-in";
+import ToggleStar from "material-ui/svg-icons/toggle/star";
+import ToggleStarBorder from "material-ui/svg-icons/toggle/star-border";
+import ToggleStarHalf from "material-ui/svg-icons/toggle/star-half";
+import {Types, CardUtil} from "foh-core";
 
 const iconPrepared = <ActionAssignmentTurnedIn/>;
 const iconNotPrepared = <ActionAssignmentInd/>;
@@ -115,6 +112,8 @@ class SeatArea extends Component {
                 labelContent += ' ' + seat.points + '分 ';
                 for (let i = 0; i < seat.caught5Heart; i ++)
                     labelContent += '♥';
+            } else {
+                labelContent += ' ' + seat.majorNumber;
             }
         }
 
@@ -162,13 +161,20 @@ class TableArea extends Component {
             gameStarted = true;
             info = <span>
                 <div>{room.game.currentTurn.action + '阶段'}</div>
-                <div>主点数：{room.game.majorNumber}</div>
-                <div>主花色：{
-                    !room.game.majorColor ? '待定' :
-                        (room.game.majorColor == '♥' || room.game.majorColor == '♦') ?
+                <div>
+                    <Chip style={{margin: '0 auto'}}>
+                        <Avatar size={32} icon={iconMaster} />
+                        <span>
+                            {!room.game.majorColor ? '-' : (room.game.majorColor == '♥' || room.game.majorColor == '♦') ?
                             <span style={{color: 'red'}}>{room.game.majorColor}</span> :
-                            <span style={{color: 'black'}}>{room.game.majorColor}</span>
-                }</div>
+                            <span style={{color: 'black'}}>{room.game.majorColor}</span>}{room.game.majorNumber}{' | '}
+                            {!room.game.aColor ? '-' : (room.game.aColor == '♥' || room.game.aColor == '♦') ?
+                            <span style={{color: 'red'}}>{room.game.aColor}</span> :
+                            <span style={{color: 'black'}}>{room.game.aColor}</span>}A
+                        </span>
+                    </Chip>
+
+                </div>
             </span>;
 
             let done = room.game.currentTurn.done;
@@ -195,11 +201,11 @@ class TableArea extends Component {
                 cards={room.game.reservedCards ? room.game.reservedCards : []}
                 choosable={false} singleLined={true} align={'center'}
                 cardsEnterMode={{successive: false}} cardsEnterFrom={'bottom'}/> :
-            <div style={{
+            <Paper zDepth={1} style={{
                 position: 'absolute', left: '25%', top: '33.3%', right: '25%', bottom: '33.3%',
                 textAlign: 'center',
                 display: 'flex', justifyContent: 'center', alignContent: 'center', flexDirection: 'column'
-            }}>{info}</div>;
+            }}>{info}</Paper>;
 
         return (
             <div style={{ ...style, ...styles.tableArea }}>

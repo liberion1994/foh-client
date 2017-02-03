@@ -13,7 +13,7 @@ export default class GamePage extends Component {
         this.state = {
             snackbarShown: false,
             message: '',
-            resultShown: true,
+            resultShown: false,
             result: null
         };
 
@@ -29,7 +29,7 @@ export default class GamePage extends Component {
             result = nextProps.scene.room.game.result;
         if (result) {
             this.setState({result: result, resultShown: true});
-            nextProps.props.onResultDismiss();
+            nextProps.onResultDismiss();
         }
     }
 
@@ -77,6 +77,7 @@ export default class GamePage extends Component {
                     />
                     <ResultDialog
                         shown={this.state.resultShown}
+                        result={this.state.result}
                         onClose={() => {this.setState({resultShown: false})}}
                     />
                 </div>

@@ -125,6 +125,12 @@ export default function localGame(state = {
                 content: {cards: {$set: action.content.actuallyPlayed}}}}}}}});
         case Actions.ON_GAME_OVER_LOCAL:
             return update(state, {room: {game: {result: {$set: action.content.result}}}});
+        case Actions.ON_LEVEL_UP:
+            let cur1 = state;
+            for (let i = 0; i < 5; i ++) {
+                cur1 = update(cur, {room: {seats: {[i]: {majorNumber: {$set: action.content.majorNumbers[i]}}}}});
+            }
+            return cur1;
         default:
             return state;
 

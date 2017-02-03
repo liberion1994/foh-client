@@ -81,6 +81,7 @@ export const ON_WIN_RESERVED_CARDS_LOCAL = 'ON_WIN_RESERVED_CARDS_LOCAL';
 export const ON_DROP_CARDS_FAIL_LOCAL = 'ON_DROP_CARDS_FAIL_LOCAL';
 export const ON_DROP_CARDS_FAIL_RESTORE_LOCAL = 'ON_DROP_CARDS_FAIL_RESTORE_LOCAL';
 export const ON_GAME_OVER_LOCAL = 'ON_GAME_OVER_LOCAL';
+export const ON_LEVEL_UP = 'ON_LEVEL_UP';
 
 
 export function on_synchronize_local(room) {
@@ -152,4 +153,7 @@ export function on_drop_cards_fail_restore_local(content) {
 }
 export function on_game_over_local(content) {
     return {type: ON_GAME_OVER_LOCAL, content: content};
+}
+export function on_level_up(content) {
+    return {type: ON_LEVEL_UP, content: content};
 }
