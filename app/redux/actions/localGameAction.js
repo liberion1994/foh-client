@@ -8,11 +8,15 @@ export const FETCH_GAME_LOCAL = 'FETCH_GAME_LOCAL';
 export const ENTER_GAME_LOCAL = 'ENTER_GAME_LOCAL';
 export const PREPARE_GAME_LOCAL = 'PREPARE_GAME_LOCAL';
 export const UNPREPARE_GAME_LOCAL = 'UNPREPARE_GAME_LOCAL';
+export const LEAVE_GAME_LOCAL = 'LEAVE_GAME_LOCAL';
 export const OFFER_MAJOR_AMOUNT_LOCAL = 'OFFER_MAJOR_AMOUNT_LOCAL';
 export const CHOOSE_MAJOR_COLOR_LOCAL = 'CHOOSE_MAJOR_COLOR_LOCAL';
 export const RESERVE_CARDS_LOCAL = 'RESERVE_CARDS_LOCAL';
 export const CHOOSE_A_COLOR_LOCAL = 'CHOOSE_A_COLOR_LOCAL';
 export const PLAY_CARDS_LOCAL = 'PLAY_CARDS_LOCAL';
+
+export const ON_MESSAGE_DISMISS = 'ON_MESSAGE_DISMISS';
+export const ON_RESULT_DISMISS = 'ON_RESULT_DISMISS';
 
 export function fetch_game_local() {
     return { type: FETCH_GAME_LOCAL }
@@ -25,6 +29,9 @@ export function prepare_game_local() {
 }
 export function unprepare_game_local() {
     return { type: UNPREPARE_GAME_LOCAL }
+}
+export function leave_game_local() {
+    return { type: LEAVE_GAME_LOCAL }
 }
 export function offer_major_amount_local(amount) {
     return { type: OFFER_MAJOR_AMOUNT_LOCAL, amount: amount }
@@ -41,8 +48,16 @@ export function choose_a_color_local(color) {
 export function play_cards_local(cards) {
     return { type: PLAY_CARDS_LOCAL, cards: cards}
 }
+export function on_message_dismiss() {
+    return { type: ON_MESSAGE_DISMISS }
+}
+export function on_result_dismiss() {
+    return { type: ON_RESULT_DISMISS }
+}
 
 //remote, called from middleware
+export const ON_ERROR_LOCAL = 'ON_ERROR_LOCAL';
+
 export const ON_SYNCHRONIZE_LOCAL = 'ON_SYNCHRONIZE_LOCAL';
 
 export const ON_NEW_ACTION_LOCAL = 'ON_NEW_ACTION_LOCAL';
@@ -60,13 +75,24 @@ export const ON_WIN_IN_OFFER_MAJOR_AMOUNT_LOCAL = 'ON_WIN_IN_OFFER_MAJOR_AMOUNT_
 export const ON_BECOME_MASTER_LOCAL = 'ON_BECOME_MASTER_LOCAL';
 export const ON_NEW_TURN_BEGIN_LOCAL = 'ON_NEW_TURN_BEGIN_LOCAL';
 export const ON_UPDATE_CARDS_IN_HAND_LOCAL = 'ON_UPDATE_CARDS_IN_HAND_LOCAL';
+export const ON_BECOME_SUB_MASTER_LOCAL = 'ON_BECOME_SUB_MASTER_LOCAL';
+export const ON_WIN_IN_PLAY_CARDS_LOCAL = 'ON_WIN_IN_PLAY_CARDS_LOCAL';
+export const ON_WIN_RESERVED_CARDS_LOCAL = 'ON_WIN_RESERVED_CARDS_LOCAL';
+export const ON_DROP_CARDS_FAIL_LOCAL = 'ON_DROP_CARDS_FAIL_LOCAL';
+export const ON_DROP_CARDS_FAIL_RESTORE_LOCAL = 'ON_DROP_CARDS_FAIL_RESTORE_LOCAL';
+export const ON_GAME_OVER_LOCAL = 'ON_GAME_OVER_LOCAL';
+
+
+export function on_synchronize_local(room) {
+    return {type: ON_SYNCHRONIZE_LOCAL, room: room};
+}
+export function on_error_local(info) {
+    return {type: ON_ERROR_LOCAL, info: info};
+}
 
 //action
-export function on_synchronize_local(room) {
-    return { type: ON_SYNCHRONIZE_LOCAL, room: room }
-}
 export function on_new_action_local() {
-    return { type: ON_NEW_ACTION_LOCAL }
+    return {type: ON_NEW_ACTION_LOCAL};
 }
 export function on_enter_game_local(sid, content) {
     return {type: ON_ENTER_GAME_LOCAL, sid: sid, content: content};
@@ -106,6 +132,24 @@ export function on_become_master_local(content) {
 export function on_new_turn_begin_local(content) {
     return {type: ON_NEW_TURN_BEGIN_LOCAL, content: content};
 }
-export function on_update_cards_in_hand(content) {
+export function on_update_cards_in_hand_local(content) {
     return {type: ON_UPDATE_CARDS_IN_HAND_LOCAL, content: content};
+}
+export function on_become_sub_master_local(content) {
+    return {type: ON_BECOME_SUB_MASTER_LOCAL, content: content};
+}
+export function on_win_in_play_cards_local(content) {
+    return {type: ON_WIN_IN_PLAY_CARDS_LOCAL, content: content};
+}
+export function on_win_reserved_cards_local(content) {
+    return {type: ON_WIN_RESERVED_CARDS_LOCAL, content: content};
+}
+export function on_drop_cards_fail_local(content) {
+    return {type: ON_DROP_CARDS_FAIL_LOCAL, content: content};
+}
+export function on_drop_cards_fail_restore_local(content) {
+    return {type: ON_DROP_CARDS_FAIL_RESTORE_LOCAL, content: content};
+}
+export function on_game_over_local(content) {
+    return {type: ON_GAME_OVER_LOCAL, content: content};
 }

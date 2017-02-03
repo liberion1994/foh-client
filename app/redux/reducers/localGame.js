@@ -8,11 +8,23 @@ import * as Actions from '../actions/localGameAction';
 import {Types, Properties, Events} from 'foh-core';
 
 export default function localGame(state = {
-    synchronized: false
+    synchronized: false,
+    message: null
 }, action) {
     switch (action.type) {
+        case Actions.ON_MESSAGE_DISMISS:
+            return {...state, ...{message: null}};
+        case Actions.ON_RESULT_DISMISS:
+            let cur = update(state, {room: {game: {$set: null}}});
+            for (let i = 0; i < 5; i ++) {
+                cur = update(cur, {room: {seats: {[i]: {prepared: {$set: false}}}}});
+            }
+            return cur;
+        case Actions.ON_ERROR_LOCAL:
+            return {...state, ...{message: '错误：' + action.info}};
+
         case Actions.ON_SYNCHRONIZE_LOCAL:
-            return {...state, ...{synchronized: true, room: action.room}};
+            return {...state, ...{synchronized: true, room: action.room, message: '已重新同步'}};
 
         /*******action*******/
         case Actions.ON_NEW_ACTION_LOCAL:
@@ -20,7 +32,7 @@ export default function localGame(state = {
         case Actions.ON_ENTER_GAME_LOCAL:
             return update(state, {room: {seats: {[action.sid]: {$set: {
                 playerName: action.content.playerName,
-                    majorNumber: action.content.majorNumber,
+                majorNumber: action.content.majorNumber,
                 prepared: false
             }}}}});
         case Actions.ON_PREPARE_GAME_LOCAL:
@@ -79,7 +91,8 @@ export default function localGame(state = {
 
         /*******event*******/
         case Actions.ON_GAME_START_LOCAL:
-            return update(state, {room: {game: {$set: action.content.room}}});
+            const tmp11_0 = {...state, ...{message: '游戏开始！'}};
+            return update(tmp11_0, {room: {game: {$set: action.content.game}}});
         case Actions.ON_WIN_IN_OFFER_MAJOR_AMOUNT_LOCAL:
             let done = state.room.game.currentTurn.done;
             let ind;
@@ -94,6 +107,24 @@ export default function localGame(state = {
             return update(state, {room: {game: {currentTurn: {$set: action.content.turn}}}});
         case Actions.ON_UPDATE_CARDS_IN_HAND_LOCAL:
             return update(state, {room: {game: {cards: {$set: action.content.cards}}}});
+        case Actions.ON_BECOME_SUB_MASTER_LOCAL:
+            return update(state, {room: {game: {subMasterSid: {$set: action.content.sid}}}});
+        case Actions.ON_WIN_IN_PLAY_CARDS_LOCAL:
+            let totalScore = 0;
+            for (let i = 0; i < action.content.scores.length; i ++)
+                totalScore += action.content.scores[i];
+            const tmp17_0 = update(state, {room: {game: {points: {[action.content.sid]: {$apply: x => x + totalScore}}}}});
+            return update(tmp17_0, {room: {game: {caught5Heart: {[action.content.sid]: {$push: action.content.fohs}}}}});
+        case Actions.ON_WIN_RESERVED_CARDS_LOCAL:
+            return update(state, {room: {game: {points: {[action.content.sid]: {$apply: x => x + action.content.score}}}}});
+        case Actions.ON_DROP_CARDS_FAIL_LOCAL:
+            return update(state, {room: {game: {currentTurn: {done: {[0]: {
+                content: {cards: {$set: action.content.originPlayed}}}}}}}});
+        case Actions.ON_DROP_CARDS_FAIL_RESTORE_LOCAL:
+            return update(state, {room: {game: {currentTurn: {done: {[0]: {
+                content: {cards: {$set: action.content.actuallyPlayed}}}}}}}});
+        case Actions.ON_GAME_OVER_LOCAL:
+            return update(state, {room: {game: {result: {$set: action.content.result}}}});
         default:
             return state;
 

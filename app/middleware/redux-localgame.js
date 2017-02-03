@@ -47,14 +47,13 @@ export const createLocalGameMiddleWare = room => store => {
         }
 
     });
-    //TODO register error listener
     room.registerErrorListener((errorCode) => {
-        console.log(Errors.toText(errorCode));
+        store.dispatch(GameActions.on_error_local(Errors.toText(errorCode)));
     });
 
     /**
      * 远端处理action，不是所有的action都能直接传给redux（例如别人埋底）
-     * 这里看到把手牌也传过来了，可能显得有点荣誉，这主要是踩了mutable的坑，下次最好用一下Immutable库
+     * 这里看到把手牌也传过来了，可能显得有点冗余，这主要是踩了mutable的坑，下次最好用一下Immutable库
      * @param action
      */
     function processAction(action) {
@@ -79,7 +78,7 @@ export const createLocalGameMiddleWare = room => store => {
     function processEvent(event) {
         switch (event.type) {
             case Events.GameStart:
-                event.content = {room: room.game.snapshot(playerSid)};
+                event.content = {game: room.game.snapshot(playerSid)};
                 break;
             case Events.UpdateCardsInHand:
                 event.content.cards = event.content.cardSets[playerSid];
@@ -146,7 +145,6 @@ export const createLocalGameMiddleWare = room => store => {
             case Types.RoomAction.UNPREPARE:
                 store.dispatch(GameActions.on_unprepare_game_local(action.sid, action.content));
                 break;
-            //TODO LEAVE
             case Types.GameAction.OFFER_MAJOR_AMOUNT:
                 store.dispatch(GameActions.on_offer_major_amount_local(action.sid, action.content));
                 break;
@@ -186,10 +184,10 @@ export const createLocalGameMiddleWare = room => store => {
                     switch (event.content.turn.action) {
                         //TODO set delay
                         case Types.GameAction.CHOOSE_MAJOR_COLOR:
-                            postpone(event, false, 5000); break;
+                            postpone(event, false, 3000); break;
                         case Types.GameAction.RESERVE_CARDS:
                         case Types.GameAction.PLAY_CARDS:
-                            postpone(event, false, 3000); break;
+                            postpone(event, false, 2000); break;
                         case Types.GameAction.CHOOSE_A_COLOR:
                         default:
                             store.dispatch(GameActions.on_new_turn_begin_local(event.content)); break;
@@ -199,10 +197,33 @@ export const createLocalGameMiddleWare = room => store => {
                 }
                 break;
             case Events.UpdateCardsInHand:
-                store.dispatch(GameActions.on_update_cards_in_hand(event.content));
+                store.dispatch(GameActions.on_update_cards_in_hand_local(event.content));
                 break;
+            case Events.BecomeSubMaster:
+                store.dispatch(GameActions.on_become_sub_master_local(event.content));
+                break;
+            case Events.WinInPlayCards:
+                store.dispatch(GameActions.on_win_in_play_cards_local(event.content));
+                break;
+            case Events.WinReservedCards:
+                store.dispatch(GameActions.on_win_reserved_cards_local(event.content));
+                break;
+            case Events.DropCardsFail:
+                if (!force) {
+                    store.dispatch(GameActions.on_drop_cards_fail_local(event.content));
+                    postpone(event, false, 2000);
+                } else {
+                    store.dispatch(GameActions.on_drop_cards_fail_restore_local(event.content));
+                }
+                break;
+            case Events.GameOver:
+                store.dispatch(GameActions.on_game_over_local(event.content));
+                break;
+            //TODO levelup
             default:
                 break;
+
+            //TODO 游戏结束要让机器人准备
         }
     }
 
@@ -266,6 +287,8 @@ export const createLocalGameMiddleWare = room => store => {
                 prepareGame(); break;
             case GameActions.UNPREPARE_GAME_LOCAL:
                 unprepareGame(); break;
+            case GameActions.LEAVE_GAME_LOCAL:
+                store.dispatch(GameActions.on_error_local('无法离开本地房间')); break;
             case GameActions.OFFER_MAJOR_AMOUNT_LOCAL:
                 offerMajorAmount(action.amount); break;
             case GameActions.CHOOSE_MAJOR_COLOR_LOCAL:

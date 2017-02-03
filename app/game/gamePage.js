@@ -1,7 +1,9 @@
 import React, {Component} from "react";
 import Paper from 'material-ui/Paper';
+import Snackbar from 'material-ui/Snackbar';
 import InformationColumn from "./informationColumn";
 import GameColumn from "./gameColumn";
+import ResultDialog from './resultDialog';
 
 export default class GamePage extends Component {
 
@@ -9,8 +11,26 @@ export default class GamePage extends Component {
         super(props);
 
         this.state = {
+            snackbarShown: false,
+            message: '',
+            resultShown: true,
+            result: null
         };
 
+    }
+
+    componentWillReceiveProps(nextProps) {
+        let newMessage = nextProps.scene.message;
+        if (newMessage) {
+            this.setState({message: newMessage, snackbarShown: true});
+        }
+        let result;
+        if (nextProps.scene && nextProps.scene.room && nextProps.scene.room.game)
+            result = nextProps.scene.room.game.result;
+        if (result) {
+            this.setState({result: result, resultShown: true});
+            nextProps.props.onResultDismiss();
+        }
     }
 
     componentDidMount() {
@@ -27,7 +47,7 @@ export default class GamePage extends Component {
 
         let {scene,
             prepare, unprepare, leave, offerMajorAmount, chooseMajorColor,
-            reserveCards, chooseAColor, playCards} = this.props;
+            reserveCards, chooseAColor, playCards, onMessageDismiss} = this.props;
         if (scene.room) {
             return (
                 <div style={styles.root}>
@@ -48,6 +68,17 @@ export default class GamePage extends Component {
                     <Paper zDepth={1} style={styles.right}>
                         <InformationColumn/>
                     </Paper>
+                    <Snackbar
+                        open={this.state.snackbarShown}
+                        message={this.state.message}
+                        bodyStyle={{textAlign: 'center'}}
+                        autoHideDuration={2000}
+                        onRequestClose={() => {this.setState({snackbarShown: false}); onMessageDismiss();}}
+                    />
+                    <ResultDialog
+                        shown={this.state.resultShown}
+                        onClose={() => {this.setState({resultShown: false})}}
+                    />
                 </div>
             )
         } else {

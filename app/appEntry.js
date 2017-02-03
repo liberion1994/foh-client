@@ -23,7 +23,7 @@ import {connect} from "react-redux";
 import io from "socket.io-client";
 import {createSocketIoMiddleWare} from './middleware/redux-socketio';
 
-import {Room} from 'foh-core';
+import {Room, SampleAI as AI} from 'foh-core';
 import {createLocalGameMiddleWare} from './middleware/redux-localgame';
 
 import createLogger from 'redux-logger';
@@ -38,9 +38,6 @@ import AppTopBar from './common/appBar';
 import SidePanel from './common/sidePanel';
 import HallPage from './hall/hallPage';
 import GamePage from './game/gamePage';
-
-/****AI****/
-import NaiveAI from './ai/naiveAI';
 
 /****redux****/
 import * as AuthAction from './redux/actions/authAction';
@@ -58,8 +55,7 @@ import * as Request from './socket/request';
 // const socket = io('http://localhost:3000');
 // const socketIoMiddleware = createSocketIoMiddleWare(socket);
 
-const room = new Room();
-room.setAI(NaiveAI);
+const room = new Room([new AI(), new AI(), new AI(), new AI(), new AI()]);
 const localGameMiddleware = createLocalGameMiddleWare(room);
 
 const logger = createLogger({collapsed: true});
@@ -106,12 +102,15 @@ class MainWindow extends React.Component {
                         onEnter={() => {dispatch(GameAction.fetch_game_local())}}
                         prepare={() => {dispatch(GameAction.prepare_game_local())}}
                         unprepare={() => {dispatch(GameAction.unprepare_game_local())}}
-                        leave={() => {}}
+                        leave={() => {dispatch(GameAction.leave_game_local())}}
                         offerMajorAmount={x => {dispatch(GameAction.offer_major_amount_local(x))}}
                         chooseMajorColor={x => {dispatch(GameAction.choose_major_color_local(x))}}
                         reserveCards={x => {dispatch(GameAction.reserve_cards_local(x))}}
                         chooseAColor={x => {dispatch(GameAction.choose_a_color_local(x))}}
                         playCards={x => {dispatch(GameAction.play_cards_local(x))}}
+
+                        onMessageDismiss={() => {dispatch(GameAction.on_message_dismiss())}}
+                        onResultDismiss={() => {dispatch(GameAction.on_result_dismiss())}}
 
                         key={pageLocation}
                     />);

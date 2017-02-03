@@ -32,7 +32,6 @@ class SeatArea extends Component {
 
     constructor(props) {
         super(props);
-
     }
 
     render() {
@@ -63,12 +62,13 @@ class SeatArea extends Component {
             const innerStyle = {margin: 5, position: 'absolute', left: 0, top: 0, right: 0, bottom: 0};
             switch(seat.done.action) {
                 case Types.GameAction.OFFER_MAJOR_AMOUNT:
-                    if (seat.done.content.majorShown) {
-                        //which means it's already time to show winners' majors
-                        actionDisplay = <CardGroupView style={innerStyle}
-                                                       cards={seat.done.content.majorShown}
-                                                       choosable={false} align={align} rotated={rotated}
-                                                       cardsEnterFrom={enterFrom}/>;
+                    if (seat.done.content.majorShown) { //which means it's already time to show winners' majors
+                        actionDisplay = <CardGroupView
+                            cardsEnterMode={{successive: false}}
+                            style={innerStyle}
+                            cards={seat.done.content.majorShown}
+                            choosable={false} align={align} rotated={rotated}
+                            cardsEnterFrom={enterFrom}/>;
                     } else {
                         let number = seat.done.content.amount;
                         let tmpStyle = labelBottom ?
@@ -95,10 +95,12 @@ class SeatArea extends Component {
                         </div>;
                     break;
                 case Types.GameAction.PLAY_CARDS:
-                    actionDisplay = <CardGroupView style={innerStyle}
-                                                   cards={seat.done.content.cards}
-                                                   choosable={false} align={align} rotated={rotated}
-                                                   cardsEnterFrom={enterFrom}/>;
+                    actionDisplay = <CardGroupView
+                        cardsEnterMode={{successive: false}}
+                        style={innerStyle}
+                        cards={seat.done.content.cards}
+                        choosable={false} align={align} rotated={rotated}
+                        cardsEnterFrom={enterFrom}/>;
                     break;
                 case Types.GameAction.RESERVE_CARDS:
                 default:
@@ -106,11 +108,21 @@ class SeatArea extends Component {
             }
         }
 
+        let labelContent = '空座位';
+        if (seat) {
+            labelContent = seat.playerName;
+            if (gameStarted) {
+                labelContent += ' ' + seat.points + '分 ';
+                for (let i = 0; i < seat.caught5Heart; i ++)
+                    labelContent += '♥';
+            }
+        }
+
         let div1 =
                 <Chip
                     style={chipStyle}>
                     <Avatar size={32} icon={icon} />
-                    <span>{seat ? seat.playerName : '空座位'}</span>
+                    <span>{labelContent}</span>
                 </Chip>,
             div2 =
                 <div style={{flex: 1, position: 'relative'}}>
@@ -143,9 +155,21 @@ class TableArea extends Component {
 
         let mySid = room.sid;
 
+        let info = <span>尚未开始</span>;
+
         let gameStarted = false;
         if (room.game) {
             gameStarted = true;
+            info = <span>
+                <div>{room.game.currentTurn.action + '阶段'}</div>
+                <div>主点数：{room.game.majorNumber}</div>
+                <div>主花色：{
+                    !room.game.majorColor ? '待定' :
+                        (room.game.majorColor == '♥' || room.game.majorColor == '♦') ?
+                            <span style={{color: 'red'}}>{room.game.majorColor}</span> :
+                            <span style={{color: 'black'}}>{room.game.majorColor}</span>
+                }</div>
+            </span>;
 
             let done = room.game.currentTurn.done;
             for (let i = 0; i < done.length; i ++)
@@ -158,19 +182,32 @@ class TableArea extends Component {
                     (i == submaster) ? 'subMaster' : 'slave'
                 );
                 seats[i].points = room.game.points[i];
-                seats[i].caught5Heart = room.game.caught5Heart.length;
+                seats[i].caught5Heart = room.game.caught5Heart[i].length;
             }
         }
 
         let sids = [];
-        for (let i = 0; i < 5; i ++)
-            sids[i] = (mySid + i) % 5;
+        for (let i = 0; i < 5; i ++) sids[i] = (mySid + i) % 5;
+
+        let centerArea = this.props.reservedCardsShown ?
+            <CardGroupView
+                style={{position: 'absolute', left: '25%', top: '33.3%', right: '25%', bottom: '33.3%'}}
+                cards={room.game.reservedCards ? room.game.reservedCards : []}
+                choosable={false} singleLined={true} align={'center'}
+                cardsEnterMode={{successive: false}} cardsEnterFrom={'bottom'}/> :
+            <div style={{
+                position: 'absolute', left: '25%', top: '33.3%', right: '25%', bottom: '33.3%',
+                textAlign: 'center',
+                display: 'flex', justifyContent: 'center', alignContent: 'center', flexDirection: 'column'
+            }}>{info}</div>;
 
         return (
             <div style={{ ...style, ...styles.tableArea }}>
                 <SeatArea style={{
                     position: 'absolute', left: 0, top: 0, right: '50%', bottom: '66.7%'
                 }} sid={sids[3]} seat={seats[sids[3]]} gameStarted={gameStarted}/>
+
+                {centerArea}
 
                 <SeatArea style={{
                     position: 'absolute', left: '50%', top: 0, right: 0, bottom: '66.7%'
@@ -262,7 +299,7 @@ class OperationArea extends Component {
         let {style,
             cards, stage, prepared, accessToReservedCards, isCurrent, majorNumber,
             prepare, unprepare, leave, offerMajorAmount, chooseMajorColor,
-            reserveCards, chooseAColor, playCards} = this.props;
+            reserveCards, chooseAColor, playCards, showReservedCards} = this.props;
         let {chosenCards} = this.state;
         let controls = [];
 
@@ -308,16 +345,15 @@ class OperationArea extends Component {
                             this.setState({chosenCards: chosenCards.clear()});
                         }}/>);
                         if (accessToReservedCards)
-                            controls.push(<FlatButton label="底牌" key={1}/>);
+                            controls.push(<FlatButton label="底牌" key={1} onClick={() => {showReservedCards();}}/>);
                         break;
                     default:
                         break;
                 }
 
             } else {
-                //TODO show reserved cards function
                 if (accessToReservedCards)
-                    controls.push(<FlatButton label="底牌" key={0}/>);
+                    controls.push(<FlatButton label="底牌" key={0} onClick={() => {showReservedCards();}}/>);
                 else
                     controls.push(<FlatButton label=" " key={0} style={{visibility: 'hidden'}}/>); // 占位用
             }
@@ -328,14 +364,13 @@ class OperationArea extends Component {
                     {controls}
                 </div>
                 <div style={{flex: 1, position: 'relative'}}>
-                    <CardGroupView style={{
-                        position: 'absolute', left: 0, top: 0, right: 0, bottom: 0
-                    }} cards={cards} choosable={true} singleLined={false} chosenCards={chosenCards} onChosen={(card, chosen) => {
-                        if (chosen)
-                            this.setState({chosenCards: chosenCards.add(card)});
-                        else
-                            this.setState({chosenCards: chosenCards.delete(card)});
-                    }}/>
+                    <CardGroupView
+                        style={{position: 'absolute', left: 0, top: 0, right: 0, bottom: 0}}
+                        cards={cards} choosable={true} singleLined={false} chosenCards={chosenCards}
+                        onChosen={(card, chosen) => {
+                            if (chosen) this.setState({chosenCards: chosenCards.add(card)});
+                            else this.setState({chosenCards: chosenCards.delete(card)});
+                        }}/>
                 </div>
             </div>
         );
@@ -351,7 +386,8 @@ export default class GameColumn extends Component {
             dimensions: {
                 width: -1,
                 height: -1
-            }
+            },
+            reservedCardsShown: false
         };
 
     }
@@ -391,6 +427,7 @@ export default class GameColumn extends Component {
                             width: tableWidth,
                             height: tableHeight
                         }}
+                        reservedCardsShown={this.state.reservedCardsShown}
                     />
                     <OperationArea
                         style={{flex: 1}}
@@ -410,6 +447,10 @@ export default class GameColumn extends Component {
                         reserveCards={reserveCards}
                         chooseAColor={chooseAColor}
                         playCards={playCards}
+                        showReservedCards={() => {
+                            this.setState({reservedCardsShown: true});
+                            setTimeout(() => {this.setState({reservedCardsShown: false})}, 3000);
+                        }}
                     />
                 </div>
             </Measure>
