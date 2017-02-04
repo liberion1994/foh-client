@@ -47,7 +47,7 @@ export default class SidePanel extends Component {
                 >
                     <MenuItem primaryText="单人" leftIcon={vsComIcon} disabled={false}
                               value={PageLocationState.VS_COM}/>
-                    <MenuItem primaryText="大厅" leftIcon={hallIcon} disabled={false}
+                    <MenuItem primaryText="大厅" leftIcon={hallIcon} disabled={true}
                               value={PageLocationState.HALL}/>
                     <MenuItem primaryText="游戏" leftIcon={gameIcon} disabled={true}
                               value={PageLocationState.GAME}/>

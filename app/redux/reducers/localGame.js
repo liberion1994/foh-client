@@ -12,9 +12,9 @@ export default function localGame(state = {
     message: null
 }, action) {
     switch (action.type) {
-        case Actions.ON_MESSAGE_DISMISS:
+        case Actions.ON_MESSAGE_DISMISS_LOCAL:
             return {...state, ...{message: null}};
-        case Actions.ON_RESULT_DISMISS:
+        case Actions.ON_RESULT_DISMISS_LOCAL:
             let cur = update(state, {room: {game: {$set: null}}});
             for (let i = 0; i < 5; i ++) {
                 cur = update(cur, {room: {seats: {[i]: {prepared: {$set: false}}}}});
@@ -39,6 +39,8 @@ export default function localGame(state = {
             return update(state, {room: {seats: {[action.sid]: {prepared: {$set: true}}}}});
         case Actions.ON_UNPREPARE_GAME_LOCAL:
             return update(state, {room: {seats: {[action.sid]: {prepared: {$set: false}}}}});
+        case Actions.ON_LEAVE_GAME_LOCAL:
+            return update(state, {room: {seats: {[action.sid]: {$set: null}}}});
         case Actions.ON_OFFER_MAJOR_AMOUNT_LOCAL:
             const tmp1_0 = update(state, {room: {game: {currentTurn: {remainedSid: {$splice: [[0, 1]]}}}}});
             return update(tmp1_0, {room: {game: {currentTurn: {done: {$unshift: [{
@@ -125,12 +127,14 @@ export default function localGame(state = {
                 content: {cards: {$set: action.content.actuallyPlayed}}}}}}}});
         case Actions.ON_GAME_OVER_LOCAL:
             return update(state, {room: {game: {result: {$set: action.content.result}}}});
-        case Actions.ON_LEVEL_UP:
+        case Actions.ON_LEVEL_UP_LOCAL:
             let cur1 = state;
             for (let i = 0; i < 5; i ++) {
-                cur1 = update(cur, {room: {seats: {[i]: {majorNumber: {$set: action.content.majorNumbers[i]}}}}});
+                cur1 = update(cur1, {room: {seats: {[i]: {majorNumber: {$set: action.content.majorNumbers[i]}}}}});
             }
             return cur1;
+        case Actions.ON_BECOME_NEXT_MASTER_LOCAL:
+            return update(state, {room: {nextMaster: {$set: action.content.sid}}});
         default:
             return state;
 

@@ -18,6 +18,8 @@ export const createLocalGameMiddleWare = room => store => {
     let pending = false;
     let pendingQueue = [];
 
+    let robots = [null, null, null, null];
+
     room.registerActionListener((action, events, eid) => {
 
         processAction(action);
@@ -26,15 +28,15 @@ export const createLocalGameMiddleWare = room => store => {
             processEvent(events[i]);
 
         /****ai****/
-        if (room.game && !room.game.result && room.game.currentTurn.remainedSid[0] != playerSid) {
+        if (room.game && !room.game.result && robots[room.game.currentTurn.remainedSid[0]]) {
             setTimeout(() => {room.autoPlay()}, 2000);
         }
         for (let i = 0; i < len; i ++) {
             if (events[i].type == Events.GameOver) {
                 setTimeout(() => {
                     for (let i = 0; i < Properties.GamePlayers; i++) {
-                        if (i != playerSid) {
-                            room.onAction(i, Types.RoomAction.PREPARE, {playerName: 'Bot' + i});
+                        if (robots[i]) {
+                            room.onAction(i, Types.RoomAction.PREPARE, {playerName: robots[i].name});
                         }
                     }
                 }, 2000);
@@ -49,9 +51,6 @@ export const createLocalGameMiddleWare = room => store => {
             receivedEvents = JSON.parse(JSON.stringify(events));
 
         /*****Local*****/
-        console.log('new action with events', receivedAction, receivedEvents);
-
-        console.log('!!', eid, store.getState().localGame.room.eid);
         if (eid != store.getState().localGame.room.eid + 1) {
             fetchGame();
         } else {
@@ -157,6 +156,9 @@ export const createLocalGameMiddleWare = room => store => {
             case Types.RoomAction.UNPREPARE:
                 store.dispatch(GameActions.on_unprepare_game_local(action.sid, action.content));
                 break;
+            case Types.RoomAction.LEAVE:
+                store.dispatch(GameActions.on_leave_game_local(action.sid, action.content));
+                break;
             case Types.GameAction.OFFER_MAJOR_AMOUNT:
                 store.dispatch(GameActions.on_offer_major_amount_local(action.sid, action.content));
                 break;
@@ -194,7 +196,6 @@ export const createLocalGameMiddleWare = room => store => {
             case Events.NewTurnBegin:
                 if (!force) {
                     switch (event.content.turn.action) {
-                        //TODO set delay
                         case Types.GameAction.CHOOSE_MAJOR_COLOR:
                             postpone(event, false, 3000); break;
                         case Types.GameAction.RESERVE_CARDS:
@@ -223,7 +224,7 @@ export const createLocalGameMiddleWare = room => store => {
             case Events.DropCardsFail:
                 if (!force) {
                     store.dispatch(GameActions.on_drop_cards_fail_local(event.content));
-                    postpone(event, false, 0);
+                    postpone(event, false, 1500);
                 } else {
                     store.dispatch(GameActions.on_drop_cards_fail_restore_local(event.content));
                 }
@@ -232,7 +233,10 @@ export const createLocalGameMiddleWare = room => store => {
                 store.dispatch(GameActions.on_game_over_local(event.content));
                 break;
             case Events.LevelUp:
-                store.dispatch(GameActions.on_level_up(event.content));
+                store.dispatch(GameActions.on_level_up_local(event.content));
+                break;
+            case Events.BecomeNextMaster:
+                store.dispatch(GameActions.on_become_next_master_local(event.content));
                 break;
             default:
                 break;
@@ -251,14 +255,7 @@ export const createLocalGameMiddleWare = room => store => {
     function enterGame(sid) {
         playerSid = sid;
         store.dispatch(GameActions.on_synchronize_local(JSON.parse(JSON.stringify(room.info(sid)))));
-        for (let i = 0; i < Properties.GamePlayers; i ++) {
-            if (i == sid) {
-                room.onAction(i, Types.RoomAction.ENTER, {playerName: playerName, majorNumber: 2});
-            } else {
-                room.onAction(i, Types.RoomAction.ENTER, {playerName: 'Bot' + i, majorNumber: 2});
-                room.onAction(i, Types.RoomAction.PREPARE, {playerName: 'Bot' + i});
-            }
-        }
+        room.onAction(sid, Types.RoomAction.ENTER, {playerName: playerName, majorNumber: 2});
     }
 
     function prepareGame() {
@@ -289,6 +286,20 @@ export const createLocalGameMiddleWare = room => store => {
         room.onAction(playerSid, Types.GameAction.PLAY_CARDS, {cards: cards})
     }
 
+    function addRobot(sid, robot) {
+        if (room.seats[sid]) return;
+        robots[sid] = robot;
+        room.onAction(sid, Types.RoomAction.ENTER, {playerName: robot.name, majorNumber: robot.majorNumber});
+        room.onAction(sid, Types.RoomAction.PREPARE, {playerName: robot.name});
+    }
+
+    function removeRobot(sid) {
+        if (!room.seats[sid] || !robots[sid] || room.game) return;
+        let name = robots[sid].name;
+        robots[sid] = null;
+        room.onAction(sid, Types.RoomAction.LEAVE, {playerName: name});
+    }
+
     return next => action => {
 
         switch (action.type) {
@@ -312,6 +323,10 @@ export const createLocalGameMiddleWare = room => store => {
                 chooseAColor(action.color); break;
             case GameActions.PLAY_CARDS_LOCAL:
                 playCards(action.cards); break;
+            case GameActions.ADD_ROBOT_LOCAL:
+                addRobot(action.sid, action.robot); break;
+            case GameActions.REMOVE_ROBOT_LOCAL:
+                removeRobot(action.sid); break;
             default:
                 next(action); break;
         }

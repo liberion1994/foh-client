@@ -1,5 +1,6 @@
 html {
     font-family: 'Noto Sans', sans-serif;
+    overflow: hidden;
 }
 
 @keyframes maskIn{
@@ -53,3 +54,16 @@ html {
     transition: transform 3s ease;
 }
 
+
+
+@keyframes twinkling{
+    0%{
+        opacity: 1;
+    }
+    50%{
+        opacity: 0.3;
+    }
+    100%{
+        opacity: 1;
+    }
+}

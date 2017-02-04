@@ -1,9 +1,13 @@
 import React, {Component} from "react";
+import Measure from "react-measure";
+
 import Paper from 'material-ui/Paper';
 import Snackbar from 'material-ui/Snackbar';
+
 import InformationColumn from "./informationColumn";
 import GameColumn from "./gameColumn";
 import ResultDialog from './resultDialog';
+import RobotPickDialog from './robotPickDialog';
 
 export default class GamePage extends Component {
 
@@ -11,10 +15,18 @@ export default class GamePage extends Component {
         super(props);
 
         this.state = {
+            dimensions: {
+                width: -1,
+                height: -1
+            },
             snackbarShown: false,
             message: '',
+
             resultShown: false,
-            result: null
+            result: null,
+
+            robotPickerShown: false,
+            robotSid: -1,
         };
 
     }
@@ -45,16 +57,53 @@ export default class GamePage extends Component {
 
     render() {
 
-        let {scene,
+        let {width, height} = this.state.dimensions;
+
+        if (width <= 0 || height <= 0)
+            return <Measure includeMargin={false} onMeasure={(dimensions) => {
+                this.setState({dimensions})}} >
+                <div style={styles.root} />
+            </Measure>;
+
+        let {
+            scene,
             prepare, unprepare, leave, offerMajorAmount, chooseMajorColor,
-            reserveCards, chooseAColor, playCards, onMessageDismiss} = this.props;
+            reserveCards, chooseAColor, playCards, onMessageDismiss,
+            addRobot, removeRobot
+        } = this.props;
+
+        let leftWidth = height * 0.8;
+        let rightWidth = width - 45 - leftWidth;
+        if (leftWidth > width - 30)
+            leftWidth = width - 30;
+
+
+        let leftStyle = {
+            width: leftWidth,
+            height: height - 30,
+            margin: 15
+        };
+
+        let rightStyle = {
+            position: 'absolute',
+            left: leftWidth + 30,
+            top: 15,
+            right: 15,
+            bottom: 15,
+            overflow: 'hidden'
+        };
+
         if (scene.room) {
             return (
+                <Measure includeMargin={false} onMeasure={(dimensions) => {
+                    this.setState({dimensions})}} >
                 <div style={styles.root}>
-                    <div style={styles.left}>
                         <GameColumn
+                            style={leftStyle}
                             room={scene.room}
 
+                            height={height}
+                            width={leftWidth}
                             prepare={prepare}
                             unprepare={unprepare}
                             leave={leave}
@@ -63,9 +112,10 @@ export default class GamePage extends Component {
                             reserveCards={reserveCards}
                             chooseAColor={chooseAColor}
                             playCards={playCards}
+                            addRobot={sid => {this.setState({robotSid: sid, robotPickerShown: true})}}
+                            removeRobot={removeRobot}
                         />
-                    </div>
-                    <Paper zDepth={1} style={styles.right}>
+                    <Paper zDepth={1} style={rightStyle}>
                         <InformationColumn/>
                     </Paper>
                     <Snackbar
@@ -80,7 +130,16 @@ export default class GamePage extends Component {
                         result={this.state.result}
                         onClose={() => {this.setState({resultShown: false})}}
                     />
+                    <RobotPickDialog
+                        shown={this.state.robotPickerShown}
+                        onCommit={(info) => {
+                            addRobot(this.state.robotSid, info);
+                            this.setState({robotPickerShown: false, robotSid: -1})
+                        }}
+                        onClose={() => {this.setState({robotPickerShown: false})}}
+                    />
                 </div>
+                </Measure>
             )
         } else {
             return (
@@ -99,30 +158,6 @@ const styles = {
         top: 0,
         right: 0,
         bottom: 0,
-        overflow: 'hidden'
-    },
-    left: {
-        position: 'absolute',
-        left: 0,
-        top: 0,
-        right: '50%',
-        bottom: 0,
-        marginLeft: 30,
-        marginTop: 30,
-        marginBottom: 30,
-        marginRight: 15,
-        overflow: 'hidden'
-    },
-    right: {
-        position: 'absolute',
-        left: '50%',
-        top: 0,
-        right: 0,
-        bottom: 0,
-        marginLeft: 15,
-        marginTop: 30,
-        marginBottom: 30,
-        marginRight: 30,
         overflow: 'hidden'
     }
 };

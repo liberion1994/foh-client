@@ -4,13 +4,13 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import injectTapEventPlugin from 'react-tap-event-plugin';
 
-const events = window.require('events');
-const path = window.require('path');
-const fs = window.require('fs');
-
-const electron = window.require('electron');
-const {ipcRenderer, shell} = electron;
-const {dialog} = electron.remote;
+// const events = window.require('events');
+// const path = window.require('path');
+// const fs = window.require('fs');
+//
+// const electron = window.require('electron');
+// const {ipcRenderer, shell} = electron;
+// const {dialog} = electron.remote;
 
 import {createStore, applyMiddleware} from "redux";
 import {Provider} from "react-redux";
@@ -67,13 +67,14 @@ let store = createStore(reduxApp, applyMiddleware(
     logger
 ));
 
-
 // store.subscribe(()=>{
 //     console.log('new client state', store.getState().localGame);
 // });
 
 
-let muiTheme = getMuiTheme();
+let muiTheme = getMuiTheme({
+    fontFamily: 'Noto Sans, sans-serif'
+});
 
 
 class MainWindow extends React.Component {
@@ -109,8 +110,11 @@ class MainWindow extends React.Component {
                         chooseAColor={x => {dispatch(GameAction.choose_a_color_local(x))}}
                         playCards={x => {dispatch(GameAction.play_cards_local(x))}}
 
-                        onMessageDismiss={() => {dispatch(GameAction.on_message_dismiss())}}
-                        onResultDismiss={() => {dispatch(GameAction.on_result_dismiss())}}
+                        addRobot={(sid, robot) => {dispatch(GameAction.add_robot_local(sid, robot))}}
+                        removeRobot={sid => {dispatch(GameAction.remove_robot_local(sid))}}
+
+                        onMessageDismiss={() => {dispatch(GameAction.on_message_dismiss_local())}}
+                        onResultDismiss={() => {dispatch(GameAction.on_result_dismiss_local())}}
 
                         key={pageLocation}
                     />);

@@ -2,8 +2,7 @@
  * Created by liboyuan on 2017/1/23.
  */
 import React, {Component} from "react";
-import {Tabs, Tab} from 'material-ui/Tabs';
-import SwipeableViews from 'react-swipeable-views';
+import {Tabs, Tab} from "material-ui/Tabs";
 
 const styles = {
     headline: {
@@ -43,25 +42,22 @@ export default class InformationColumn extends Component {
                     onChange={this.handleChange}
                     value={this.state.slideIndex}
                 >
-                    <Tab label="Tab One" value={0} />
-                    <Tab label="Tab Two" value={1} />
-                    <Tab label="Tab Three" value={2} />
+                    <Tab label="聊天" value={0} >
+                        <div style={{textAlign: 'center'}}>
+                            <h1>开发中...</h1>
+                        </div>
+                    </Tab>
+                    <Tab label="事件" value={1} >
+                        <div style={{textAlign: 'center'}}>
+                            <h1>请等待...</h1>
+                        </div>
+                    </Tab>
+                    <Tab label="画板" value={2}>
+                        <div style={{textAlign: 'center'}}>
+                            <h1>别看了..!</h1>
+                        </div>
+                    </Tab>
                 </Tabs>
-                <SwipeableViews
-                    index={this.state.slideIndex}
-                    onChangeIndex={this.handleChange}
-                >
-                    <div>
-                        <h2 style={styles.headline}>Tabs with slide effect</h2>
-                        Swipe to see the next slide.<br />
-                    </div>
-                    <div style={styles.slide}>
-                        slide n°2
-                    </div>
-                    <div style={styles.slide}>
-                        slide n°3
-                    </div>
-                </SwipeableViews>
             </div>
         );
     }

@@ -2,25 +2,23 @@
  * Created by liboyuan on 2017/1/23.
  */
 import React, {Component} from "react";
-import Measure from "react-measure";
 import Chip from "material-ui/Chip";
 import Avatar from "material-ui/Avatar";
 import FlatButton from "material-ui/FlatButton";
-import Paper from 'material-ui/Paper';
-
+import Paper from "material-ui/Paper";
 import {CardGroupView} from "../common/card";
 import Immutable from "immutable";
-import ActionAssignmentInd from "material-ui/svg-icons/action/assignment-ind";
-import ActionAssignmentLate from "material-ui/svg-icons/action/assignment-late";
-import ActionAssignmentTurnedIn from "material-ui/svg-icons/action/assignment-turned-in";
 import ToggleStar from "material-ui/svg-icons/toggle/star";
 import ToggleStarBorder from "material-ui/svg-icons/toggle/star-border";
 import ToggleStarHalf from "material-ui/svg-icons/toggle/star-half";
+import FaHandGrabO from "react-icons/lib/fa/hand-grab-o";
+import FaHandPaperO from "react-icons/lib/fa/hand-paper-o";
+import TiFlag from "react-icons/lib/ti/flag";
 import {Types, CardUtil} from "foh-core";
 
-const iconPrepared = <ActionAssignmentTurnedIn/>;
-const iconNotPrepared = <ActionAssignmentInd/>;
-const iconEmpty = <ActionAssignmentLate/>;
+const iconPrepared = <FaHandPaperO/>;
+const iconNotPrepared = <FaHandGrabO/>;
+const iconEmpty = <TiFlag/>;
 const iconMaster = <ToggleStar/>;
 const iconSubMaster = <ToggleStarHalf/>;
 const iconSlave = <ToggleStarBorder/>;
@@ -33,15 +31,19 @@ class SeatArea extends Component {
 
     render() {
 
-        let {style, align, labelBottom, rotated,
-            sid, seat, gameStarted} = this.props;
+        let {
+            style, align, labelBottom, rotated,
+            sid, seat, gameStarted,
+            addRobot, removeRobot
+        } = this.props;
 
-        let chipStyle;
-        switch (align) {
-            case 'left': chipStyle = {margin: 0}; break;
-            case 'right': chipStyle = {marginLeft: 'auto'}; break;
-            default: chipStyle = {margin: '0 auto'}; break;
-        }
+        let chipStyle = {
+            cursor: 'pointer',
+            width: '100%',
+            overflow: 'hidden'
+        };
+        if (seat && seat.currentActive)
+            chipStyle.WebkitAnimation = 'twinkling 2s infinite ease';
 
         let icon = !seat ? iconEmpty : (
             gameStarted ? (
@@ -106,6 +108,7 @@ class SeatArea extends Component {
         }
 
         let labelContent = '空座位';
+        let onTouchTap = () => {removeRobot(sid)};
         if (seat) {
             labelContent = seat.playerName;
             if (gameStarted) {
@@ -115,14 +118,20 @@ class SeatArea extends Component {
             } else {
                 labelContent += ' ' + seat.majorNumber;
             }
+        } else {
+            onTouchTap = () => {addRobot(sid)}
         }
 
         let div1 =
-                <Chip
-                    style={chipStyle}>
-                    <Avatar size={32} icon={icon} />
-                    <span>{labelContent}</span>
-                </Chip>,
+                <div style={{width: '100%', padding: '0 10px', boxSizing: 'border-box'}}>
+                    <Chip
+                        onTouchTap={onTouchTap}
+                        labelStyle={{margin: '0 auto', paddingLeft: 0}}
+                        style={chipStyle}>
+                        <Avatar size={32} icon={icon} />
+                        <span>{labelContent}</span>
+                    </Chip>
+                </div>,
             div2 =
                 <div style={{flex: 1, position: 'relative'}}>
                     {actionDisplay}
@@ -145,7 +154,10 @@ class TableArea extends Component {
     }
 
     render() {
-        let {style, room} = this.props;
+        let {
+            style, room,
+            addRobot, removeRobot
+        } = this.props;
         let seats = [];
         for (let i = 0; i < 5; i ++) {
             if (room.seats[i]) seats[i] = {...room.seats[i]};
@@ -190,6 +202,11 @@ class TableArea extends Component {
                 seats[i].points = room.game.points[i];
                 seats[i].caught5Heart = room.game.caught5Heart[i].length;
             }
+            if (room.game.currentTurn.remainedSid[0] != null)
+                seats[room.game.currentTurn.remainedSid[0]].currentActive = true;
+        } else {
+            if (room.nextMaster != null && seats[room.nextMaster])
+                seats[room.nextMaster].currentActive = true;
         }
 
         let sids = [];
@@ -211,30 +228,35 @@ class TableArea extends Component {
             <div style={{ ...style, ...styles.tableArea }}>
                 <SeatArea style={{
                     position: 'absolute', left: 0, top: 0, right: '50%', bottom: '66.7%'
-                }} sid={sids[3]} seat={seats[sids[3]]} gameStarted={gameStarted}/>
+                }} sid={sids[3]} seat={seats[sids[3]]} gameStarted={gameStarted}
+                          addRobot={addRobot} removeRobot={removeRobot}/>
 
                 {centerArea}
 
                 <SeatArea style={{
                     position: 'absolute', left: '50%', top: 0, right: 0, bottom: '66.7%'
-                }} sid={sids[2]} seat={seats[sids[2]]} gameStarted={gameStarted}/>
+                }} sid={sids[2]} seat={seats[sids[2]]} gameStarted={gameStarted}
+                          addRobot={addRobot} removeRobot={removeRobot}/>
 
                 <SeatArea style={{
                     transform : 'rotate(90deg)', transformOrigin: 'left bottom',
                     position: 'absolute', left: 0, top: 0, right: '50%', bottom: '66.7%'
                 }} labelBottom={true} rotated={true}
-                          sid={sids[4]} seat={seats[sids[4]]} gameStarted={gameStarted}/>
+                          sid={sids[4]} seat={seats[sids[4]]} gameStarted={gameStarted}
+                          addRobot={addRobot} removeRobot={removeRobot}/>
 
                 <SeatArea style={{
                     transform : 'rotate(-90deg)', transformOrigin: 'right bottom',
                     position: 'absolute', left: '50%', top: 0, right: 0, bottom: '66.7%'
                 }} labelBottom={true} rotated={true}
-                          sid={sids[1]} seat={seats[sids[1]]} gameStarted={gameStarted}/>
+                          sid={sids[1]} seat={seats[sids[1]]} gameStarted={gameStarted}
+                          addRobot={addRobot} removeRobot={removeRobot}/>
 
                 <SeatArea style={{
                     position: 'absolute', left: '25%', top: '66.7%', right: '25%', bottom: 0
                 }} labelBottom={true}
-                          sid={sids[0]} seat={seats[sids[0]]} gameStarted={gameStarted}/>
+                          sid={sids[0]} seat={seats[sids[0]]} gameStarted={gameStarted}
+                          addRobot={addRobot} removeRobot={removeRobot}/>
             </div>
         );
     }
@@ -389,27 +411,21 @@ export default class GameColumn extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            dimensions: {
-                width: -1,
-                height: -1
-            },
             reservedCardsShown: false
         };
 
     }
 
     render() {
-        let {width, height} = this.state.dimensions;
-        const {style,
+        const {
+            style,
             room,
             prepare, unprepare, leave, offerMajorAmount, chooseMajorColor,
-            reserveCards, chooseAColor, playCards} = this.props;
+            reserveCards, chooseAColor, playCards,
+            addRobot, removeRobot
+        } = this.props;
 
-        if (width <= 0 || height <= 0)
-            return <Measure includeMargin={false} onMeasure={(dimensions) => {
-                this.setState({dimensions})}} >
-                <div style={{ ...style, ...styles.root }} />
-            </Measure>;
+        const width = style.width, height = style.height;
 
         let tableWidth = width;
         let tableHeight = width * 0.75;
@@ -424,42 +440,41 @@ export default class GameColumn extends Component {
         let inHand = room.game ? room.game.cards : [];
 
         return (
-            <Measure includeMargin={false} onMeasure={(dimensions) => {
-                this.setState({dimensions})}} >
-                <div style={{ ...style, ...styles.root }}>
-                    <TableArea
-                        room={room}
-                        style={{
-                            width: tableWidth,
-                            height: tableHeight
-                        }}
-                        reservedCardsShown={this.state.reservedCardsShown}
-                    />
-                    <OperationArea
-                        style={{flex: 1}}
+            <div style={{ ...style, ...styles.root}}>
+                <TableArea
+                    room={room}
+                    style={{
+                        width: tableWidth,
+                        height: tableHeight
+                    }}
+                    addRobot={addRobot}
+                    removeRobot={removeRobot}
+                    reservedCardsShown={this.state.reservedCardsShown}
+                />
+                <OperationArea
+                    style={{flex: 1}}
 
-                        cards={inHand}
-                        stage={stage}
-                        isCurrent={isCurrent}
-                        prepared={prepared}
-                        accessToReservedCards={accessToReservedCards}
-                        majorNumber={majorNumber}
+                    cards={inHand}
+                    stage={stage}
+                    isCurrent={isCurrent}
+                    prepared={prepared}
+                    accessToReservedCards={accessToReservedCards}
+                    majorNumber={majorNumber}
 
-                        prepare={prepare}
-                        unprepare={unprepare}
-                        leave={leave}
-                        offerMajorAmount={offerMajorAmount}
-                        chooseMajorColor={chooseMajorColor}
-                        reserveCards={reserveCards}
-                        chooseAColor={chooseAColor}
-                        playCards={playCards}
-                        showReservedCards={() => {
-                            this.setState({reservedCardsShown: true});
-                            setTimeout(() => {this.setState({reservedCardsShown: false})}, 3000);
-                        }}
-                    />
-                </div>
-            </Measure>
+                    prepare={prepare}
+                    unprepare={unprepare}
+                    leave={leave}
+                    offerMajorAmount={offerMajorAmount}
+                    chooseMajorColor={chooseMajorColor}
+                    reserveCards={reserveCards}
+                    chooseAColor={chooseAColor}
+                    playCards={playCards}
+                    showReservedCards={() => {
+                        this.setState({reservedCardsShown: true});
+                        setTimeout(() => {this.setState({reservedCardsShown: false})}, 3000);
+                    }}
+                />
+            </div>
         );
     }
 }
@@ -472,7 +487,6 @@ SeatArea.defaultProps = {
 
 const styles = {
     root: {
-        position: 'absolute', left: 0, top: 0, right: 0, bottom: 0,
         display: 'flex', flexDirection: 'column',
         overflow: 'hidden'
     },

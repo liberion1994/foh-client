@@ -15,8 +15,11 @@ export const RESERVE_CARDS_LOCAL = 'RESERVE_CARDS_LOCAL';
 export const CHOOSE_A_COLOR_LOCAL = 'CHOOSE_A_COLOR_LOCAL';
 export const PLAY_CARDS_LOCAL = 'PLAY_CARDS_LOCAL';
 
-export const ON_MESSAGE_DISMISS = 'ON_MESSAGE_DISMISS';
-export const ON_RESULT_DISMISS = 'ON_RESULT_DISMISS';
+export const ON_MESSAGE_DISMISS_LOCAL = 'ON_MESSAGE_DISMISS_LOCAL';
+export const ON_RESULT_DISMISS_LOCAL = 'ON_RESULT_DISMISS_LOCAL';
+
+export const ADD_ROBOT_LOCAL = 'ADD_ROBOT_LOCAL';
+export const REMOVE_ROBOT_LOCAL = 'REMOVE_ROBOT_LOCAL';
 
 export function fetch_game_local() {
     return { type: FETCH_GAME_LOCAL }
@@ -48,11 +51,17 @@ export function choose_a_color_local(color) {
 export function play_cards_local(cards) {
     return { type: PLAY_CARDS_LOCAL, cards: cards}
 }
-export function on_message_dismiss() {
-    return { type: ON_MESSAGE_DISMISS }
+export function on_message_dismiss_local() {
+    return { type: ON_MESSAGE_DISMISS_LOCAL }
 }
-export function on_result_dismiss() {
-    return { type: ON_RESULT_DISMISS }
+export function on_result_dismiss_local() {
+    return { type: ON_RESULT_DISMISS_LOCAL }
+}
+export function add_robot_local(sid, robot) {
+    return { type: ADD_ROBOT_LOCAL, sid: sid, robot: robot }
+}
+export function remove_robot_local(sid) {
+    return { type: REMOVE_ROBOT_LOCAL, sid: sid }
 }
 
 //remote, called from middleware
@@ -64,6 +73,8 @@ export const ON_NEW_ACTION_LOCAL = 'ON_NEW_ACTION_LOCAL';
 export const ON_ENTER_GAME_LOCAL = 'ON_ENTER_GAME_LOCAL';
 export const ON_PREPARE_GAME_LOCAL = 'ON_PREPARE_GAME_LOCAL';
 export const ON_UNPREPARE_GAME_LOCAL = 'ON_UNPREPARE_GAME_LOCAL';
+export const ON_LEAVE_GAME_LOCAL = 'ON_LEAVE_GAME_LOCAL';
+
 export const ON_OFFER_MAJOR_AMOUNT_LOCAL = 'ON_OFFER_MAJOR_AMOUNT_LOCAL';
 export const ON_CHOOSE_MAJOR_COLOR_LOCAL = 'ON_CHOOSE_MAJOR_COLOR_LOCAL';
 export const ON_RESERVE_CARDS_LOCAL = 'ON_RESERVE_CARDS_LOCAL';
@@ -81,8 +92,8 @@ export const ON_WIN_RESERVED_CARDS_LOCAL = 'ON_WIN_RESERVED_CARDS_LOCAL';
 export const ON_DROP_CARDS_FAIL_LOCAL = 'ON_DROP_CARDS_FAIL_LOCAL';
 export const ON_DROP_CARDS_FAIL_RESTORE_LOCAL = 'ON_DROP_CARDS_FAIL_RESTORE_LOCAL';
 export const ON_GAME_OVER_LOCAL = 'ON_GAME_OVER_LOCAL';
-export const ON_LEVEL_UP = 'ON_LEVEL_UP';
-
+export const ON_LEVEL_UP_LOCAL = 'ON_LEVEL_UP_LOCAL';
+export const ON_BECOME_NEXT_MASTER_LOCAL = 'ON_BECOME_NEXT_MASTER_LOCAL';
 
 export function on_synchronize_local(room) {
     return {type: ON_SYNCHRONIZE_LOCAL, room: room};
@@ -101,6 +112,10 @@ export function on_enter_game_local(sid, content) {
 export function on_prepare_game_local(sid, content) {
     return {type: ON_PREPARE_GAME_LOCAL, sid: sid, content: content};
 }
+export function on_leave_game_local(sid, content) {
+    return {type: ON_LEAVE_GAME_LOCAL, sid: sid, content: content};
+}
+
 export function on_unprepare_game_local(sid, content) {
     return {type: ON_UNPREPARE_GAME_LOCAL, sid: sid, content: content};
 }
@@ -154,6 +169,9 @@ export function on_drop_cards_fail_restore_local(content) {
 export function on_game_over_local(content) {
     return {type: ON_GAME_OVER_LOCAL, content: content};
 }
-export function on_level_up(content) {
-    return {type: ON_LEVEL_UP, content: content};
+export function on_level_up_local(content) {
+    return {type: ON_LEVEL_UP_LOCAL, content: content};
+}
+export function on_become_next_master_local(content) {
+    return {type: ON_BECOME_NEXT_MASTER_LOCAL, content: content};
 }

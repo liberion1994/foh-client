@@ -132,7 +132,7 @@ class Card extends Component {
         if (chosen && choosable) {
             transY += transYChosen;
         }
-        let transform = 'translate(' + transX + 'px,' + transY + 'px)';
+        let transform = 'translate3d(' + transX + 'px,' + transY + 'px, 0)';
         let cursor = choosable ? 'pointer' : 'default';
 
         let _style = { ...style, ...{
@@ -235,7 +235,7 @@ export class CardGroupView extends Component {
             let minLineSize = Math.floor((width - cardWidth) / (cardWidth * maxCardDisXRate)) + 1;
             if (minLineSize > cardSize)
                 minLineSize = cardSize;
-            if (line1Size < minLineSize) {
+            if (line1Size <= minLineSize) {
                 xDis = maxCardDisXRate * cardWidth;
                 line1Size = minLineSize;
             } else {
@@ -289,11 +289,11 @@ export class CardGroupView extends Component {
                           transition: 'transform .5s ease, border .5s ease'
                       }}
                       enteringStyle={{
-                          transform: 'translate(' + xOffEnter + 'px,' + yOffEnter + 'px)',
+                          transform: 'translate3d(' + xOffEnter + 'px,' + yOffEnter + 'px, 0)',
                           opacity: 0
                       }}
                       leavingStyle={{
-                          transform: 'translate(' + xOffEnter + 'px,' + yOffEnter + 'px)',
+                          transform: 'translate3d(' + xOffEnter + 'px,' + yOffEnter + 'px, 0)',
                           opacity: 0
                       }}
                       enteringDelay={enteringDelays[index]}
