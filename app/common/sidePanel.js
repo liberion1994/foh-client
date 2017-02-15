@@ -25,7 +25,7 @@ export default class SidePanel extends Component {
     }
 
     render() {
-        let {currentPage, onClose, changePage, open} = this.props;
+        let {currentPage, onClose, changePage, open, online} = this.props;
         return (
             <Drawer width={200} open={open} >
                 <AppBar title="导航"
@@ -47,13 +47,14 @@ export default class SidePanel extends Component {
                 >
                     <MenuItem primaryText="单人" leftIcon={vsComIcon} disabled={false}
                               value={PageLocationState.VS_COM}/>
-                    <MenuItem primaryText="大厅" leftIcon={hallIcon} disabled={true}
+                    <MenuItem primaryText="大厅" leftIcon={hallIcon} disabled={!online}
                               value={PageLocationState.HALL}/>
-                    <MenuItem primaryText="游戏" leftIcon={gameIcon} disabled={true}
+                    {/*//TODO 游戏还需要有进行中的游戏*/}
+                    <MenuItem primaryText="游戏" leftIcon={gameIcon} disabled={!online}
                               value={PageLocationState.GAME}/>
-                    <MenuItem primaryText="设置" leftIcon={settingsIcon} disabled={true}
+                    <MenuItem primaryText="设置" leftIcon={settingsIcon} disabled={!online}
                               value={PageLocationState.SETTINGS}/>
-                    <MenuItem primaryText="数据" leftIcon={statisticsIcon} disabled={true}
+                    <MenuItem primaryText="数据" leftIcon={statisticsIcon} disabled={!online}
                               value={PageLocationState.PLAYERS}/>
                 </Menu>
             </Drawer>

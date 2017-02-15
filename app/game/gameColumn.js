@@ -166,13 +166,14 @@ class TableArea extends Component {
 
         let mySid = room.sid;
 
-        let info = <span>尚未开始</span>;
+        let info = <span>{'尚未开始' + (room.countDown != null ? ("00" + room.countDown).slice(-2) : '')}</span>;
 
         let gameStarted = false;
         if (room.game) {
             gameStarted = true;
             info = <span>
-                <div>{room.game.currentTurn.action + '阶段'}</div>
+                <div>{room.game.currentTurn.action + '阶段' + (room.countDown != null ?
+                    ("00" + room.countDown).slice(-2) : '')}</div>
                 <div>
                     <Chip style={{margin: '0 auto'}}>
                         <Avatar size={32} icon={iconMaster} />

@@ -43,6 +43,7 @@ export default class RobotPickDialog extends Component {
                 title="选择机器人"
                 actions={actions}
                 modal={true}
+                autoScrollBodyContent={true}
                 open={shown}
             >
                 <div>
@@ -84,8 +85,8 @@ export default class RobotPickDialog extends Component {
 
 const availableNumbers = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
 
-const decorators = ['机智', '阳刚', '修长', '圆润', '霸道', '俊俏', '端庄'];
-const names = ['欧阳', '李豪', '郑琦', '骚包', '小羊', '脸盆', '阿暴', '陆昊', '老僧', '王其欣', '棍哥'];
+const decorators = ['机智', '阳刚', '妖艳', '修长', '圆润', '霸道', '俊俏', '端庄', '腼腆'];
+const names = ['欧阳', '李豪', '郑琦', '骚包', '小羊', '脸盆', '阿暴', '陆昊', '老僧', '王其欣', '棍哥', '鲁先先'];
 
 function randomName() {
     return decorators[Math.floor(Math.random() * decorators.length)] + '的' +

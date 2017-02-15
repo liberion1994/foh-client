@@ -8,13 +8,15 @@ import auth from './reducers/auth';
 import pageLocation from './reducers/pageLocation';
 import hall from './reducers/hall';
 import localGame from './reducers/localGame';
+import remoteGame from './reducers/remoteGame';
 
 const reduxApp = combineReducers({
     socket,
     auth,
     pageLocation,
     hall,
-    localGame
+    localGame,
+    remoteGame
 });
 
 export default reduxApp;

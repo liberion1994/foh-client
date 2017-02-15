@@ -4,7 +4,7 @@
 import * as Actions from '../actions/pageLocationAction';
 import * as States from '../states/pageLocationState';
 
-export default function pageLocation(state = {state: States.VS_COM}, action) {
+export default function pageLocation(state = {state: States.WELCOME}, action) {
     switch (action.type) {
         case Actions.TO_WELCOME_PAGE:
             return { ...state, ...{ state: States.WELCOME } };

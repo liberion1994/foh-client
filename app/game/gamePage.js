@@ -144,7 +144,6 @@ export default class GamePage extends Component {
         } else {
             return (
                 <div style={styles.root}>
-                    <h1>找不到房间</h1>
                 </div>
             );
         }

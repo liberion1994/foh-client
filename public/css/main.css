@@ -3,6 +3,10 @@ html {
     overflow: hidden;
 }
 
+::-webkit-scrollbar {
+    display: none;
+}
+
 @keyframes maskIn{
     from { transform: translateY(100%); }
     to { transform: translateY(0); }
@@ -13,21 +17,21 @@ html {
 }
 .fade-appear.fade-appear-active {
     opacity: 1;
-    transition: opacity 3000ms ease-in;
+    transition: opacity 600ms ease-out;
 }
 .fade-enter {
     opacity: 0;
 }
 .fade-enter.fade-enter-active {
     opacity: 1;
-    transition: opacity 3000ms ease-in;
+    transition: opacity 600ms ease-out;
 }
 .fade-leave {
     opacity: 1;
 }
 .fade-leave.fade-leave-active {
     opacity: 0.01;
-    transition: opacity 3000ms ease-out;
+    transition: opacity 600ms ease-out;
 }
 
 

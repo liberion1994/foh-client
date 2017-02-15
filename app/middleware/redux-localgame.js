@@ -58,7 +58,7 @@ export const createLocalGameMiddleWare = room => store => {
         }
 
     });
-    room.registerErrorListener((errorCode) => {
+    room.registerErrorListener(errorCode => {
         store.dispatch(GameActions.on_error_local(Errors.toText(errorCode)));
     });
 
@@ -305,8 +305,6 @@ export const createLocalGameMiddleWare = room => store => {
         switch (action.type) {
             case GameActions.FETCH_GAME_LOCAL:
                 fetchGame(); break;
-            case GameActions.ENTER_GAME_LOCAL:
-                enterGame(action.sid); break;
             case GameActions.PREPARE_GAME_LOCAL:
                 prepareGame(); break;
             case GameActions.UNPREPARE_GAME_LOCAL:

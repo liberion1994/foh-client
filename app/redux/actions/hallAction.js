@@ -1,84 +1,64 @@
 /**
  * Created by liboyuan on 2016/12/24.
  */
-import ioreq from 'socket.io-request';
-import * as Request from '../../socket/request';
-import {Error, isAuthError} from '../../socket/error';
-import {auth_failure} from './authAction';
-import {send_operation_request, send_operation_success, send_operation_failure} from './generalAction';
-import {to_game_page} from './pageLocationAction';
 
-export const GET_TABLE_REQUEST = 'GET_TABLE_REQUEST';
-export const GET_TABLE_SUCCESS = 'GET_TABLE_SUCCESS';
-export const GET_TABLE_FAILURE = 'GET_TABLE_FAILURE';
+export const FETCH_HALL = 'FETCH_HALL';
+export const CREATE_ROOM = 'CREATE_ROOM';
+export const ENTER_ROOM = 'ENTER_ROOM';
+export const NO_LONGER_SYNCHRONIZED_HALL = 'NO_LONGER_SYNCHRONIZED_HALL';
 
-export const HALL_CHAT_RECEIVED = 'HALL_CHAT_RECEIVED';
-export const HALL_CHAT_READ = 'HALL_CHAT_READ';
-
-export const ENTER_TABLE = 'ENTER_TABLE';
-
-function get_table_request() {
-    return {type: GET_TABLE_REQUEST};
+export function fetch_hall() {
+    return {type: FETCH_HALL};
+}
+export function create_room(room) {
+    return {type: CREATE_ROOM, room: room};
+}
+export function enter_room(id, sid) {
+    return {type: ENTER_ROOM, id: id, sid: sid};
+}
+export function no_longer_synchronized_hall() {
+    return {type: NO_LONGER_SYNCHRONIZED_HALL};
 }
 
-function get_table_success(content) {
-    return {type: GET_TABLE_SUCCESS, content: content};
+export const ON_NEW_EVENT_HALL = 'ON_NEW_EVENT_HALL';
+export const ON_SYNCHRONIZE_HALL = 'ON_SYNCHRONIZE_HALL';
+export const ON_CREATE_ROOM = 'ON_CREATE_ROOM';
+export const ON_REMOVE_ROOM = 'ON_REMOVE_ROOM';
+export const ON_USER_ONLINE = 'ON_USER_ONLINE';
+export const ON_USER_OFFLINE = 'ON_USER_OFFLINE';
+export const ON_ENTER_ROOM = 'ON_ENTER_ROOM';
+export const ON_LEAVE_ROOM = 'ON_LEAVE_ROOM';
+export const ON_GAME_START_ROOM = 'ON_GAME_START_ROOM';
+export const ON_GAME_OVER_ROOM = 'ON_GAME_OVER_ROOM';
+
+export function on_new_event_hall() {
+    return {type: ON_NEW_EVENT_HALL};
 }
 
-function get_table_failure(errorCode) {
-    return {type: GET_TABLE_FAILURE, errorCode: errorCode}
+export function on_synchronize_hall(content) {
+    return {type: ON_SYNCHRONIZE_HALL, content: content};
 }
-
-export function enter_table_success() {
-    return {type: ENTER_TABLE}
+export function on_create_room(content) {
+    return {type: ON_CREATE_ROOM, content: content};
 }
-
-/**
- * 获取大厅信息，在加载大厅页面时触发
- * @returns {function(*)}
- */
-export function get_tables() {
-    return dispatch => {
-        dispatch(get_table_request());
-        ioreq(socket).request(Request.GET_TABLES, null)
-            .then(function (res) {
-                if (!res.success) {
-                    if (isAuthError(res.errorCode))
-                        dispatch(auth_failure(res.errorCode));
-                    dispatch(get_table_failure(res.errorCode));
-                } else {
-                    dispatch(get_table_success(res.content));
-                }
-            })
-            .catch(function () {
-                dispatch(get_table_failure(Error.REQUEST_FAIL));
-            });
-    }
+export function on_remove_room(content) {
+    return {type: ON_REMOVE_ROOM, content: content};
 }
-
-/**
- * 加入桌子，成功后跳转
- * @param content
- * @returns {function(*)}
- */
-export function enter_table(content) {
-    return dispatch => {
-        dispatch(send_operation_request());
-        ioreq(socket).request(Request.ENTER_TABLE, content)
-            .then(function (res) {
-                if (!res.success) {
-                    if (isAuthError(res.errorCode))
-                        dispatch(auth_failure(res.errorCode));
-                    dispatch(send_operation_failure(res.errorCode));
-                } else {
-                    dispatch(send_operation_success());
-                    dispatch(enter_table_success());
-                    //TODO 加入channel
-                    dispatch(to_game_page());
-                }
-            })
-            .catch(function (err) {
-                dispatch(send_operation_failure(Error.REQUEST_FAIL));
-            });
-    }
+export function on_user_online(content) {
+    return {type: ON_USER_ONLINE, content: content};
+}
+export function on_user_offline(content) {
+    return {type: ON_USER_OFFLINE, content: content};
+}
+export function on_enter_room(content) {
+    return {type: ON_ENTER_ROOM, content: content};
+}
+export function on_leave_room(content) {
+    return {type: ON_LEAVE_ROOM, content: content};
+}
+export function on_game_start_room(content) {
+    return {type: ON_GAME_START_ROOM, content: content};
+}
+export function on_game_over_room(content) {
+    return {type: ON_GAME_OVER_ROOM, content: content};
 }

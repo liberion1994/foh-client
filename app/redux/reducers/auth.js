@@ -9,14 +9,12 @@ export default function auth(state = {
     state: States.UNAUTHENTICATED,
 }, action) {
     switch (action.type) {
-        case Actions.AUTH_REQUEST:
-            return { ...state, ...{ state: States.REQUESTED, authType: action.authType } };
-        case Actions.AUTH_SUCCESS:
-            return { ...state, ...{ state: States.AUTHENTICATED, userName: action.agent.username } };
-        case Actions.AUTH_FAILURE:
-            return { ...state, ...{ state: States.FAILED, errorCode: action.errorCode } };
-        case Actions.AUTH_LOGOUT:
-            return { ...state, ...{ state: States.UNAUTHENTICATED } };
+        case Actions.ON_AUTH_SUCCESS:
+            return { ...state, ...{ state: States.AUTHENTICATED, username: action.username } };
+        case Actions.ON_AUTH_FAILURE:
+            return { ...state, ...{ state: States.UNAUTHENTICATED, errorCode: action.errorCode } };
+        case Actions.ON_AUTH_LOGOUT:
+            return { ...state, ...{ state: States.UNAUTHENTICATED, errorCode: null } };
         default:
             return state;
     }

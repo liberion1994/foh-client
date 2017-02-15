@@ -2,10 +2,9 @@
  * Created by liboyuan on 2017/1/24.
  */
 
-import update from 'react-addons-update';
-
-import * as Actions from '../actions/localGameAction';
-import {Types, Properties, Events} from 'foh-core';
+import update from "react-addons-update";
+import * as Actions from "../actions/localGameAction";
+import {Types} from "foh-core";
 
 export default function localGame(state = {
     synchronized: false,
@@ -104,13 +103,15 @@ export default function localGame(state = {
             return update(state, {room: {game: {currentTurn: {done: {[ind]: {
                 content: {majorShown: {$set: action.content.majors}}}}}}}});
         case Actions.ON_BECOME_MASTER_LOCAL:
-            return update(state, {room: {game: {masterSid: {$set: action.content.sid}}}});
+            const tmp12_0 = {...state, ...{message: state.room.seats[action.content.sid].playerName + '成为了庄家'}};
+            return update(tmp12_0, {room: {game: {masterSid: {$set: action.content.sid}}}});
         case Actions.ON_NEW_TURN_BEGIN_LOCAL:
             return update(state, {room: {game: {currentTurn: {$set: action.content.turn}}}});
         case Actions.ON_UPDATE_CARDS_IN_HAND_LOCAL:
             return update(state, {room: {game: {cards: {$set: action.content.cards}}}});
         case Actions.ON_BECOME_SUB_MASTER_LOCAL:
-            return update(state, {room: {game: {subMasterSid: {$set: action.content.sid}}}});
+            const tmp13_0 = {...state, ...{message: state.room.seats[action.content.sid].playerName + '成为了副庄'}};
+            return update(tmp13_0, {room: {game: {subMasterSid: {$set: action.content.sid}}}});
         case Actions.ON_WIN_IN_PLAY_CARDS_LOCAL:
             let totalScore = 0;
             for (let i = 0; i < action.content.scores.length; i ++)

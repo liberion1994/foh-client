@@ -1,6 +1,8 @@
 'use strict';
 
 import React from 'react';
+
+import ReactCSSTransitionGroup from "react-addons-css-transition-group";
 import ReactDOM from 'react-dom';
 import injectTapEventPlugin from 'react-tap-event-plugin';
 
@@ -31,11 +33,15 @@ import createLogger from 'redux-logger';
 /****material-ui****/
 import getMuiTheme from 'material-ui/styles/getMuiTheme';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
+import Dialog from 'material-ui/Dialog';
+import FlatButton from 'material-ui/FlatButton';
 
 /****custom widgets****/
-import WelcomePage from './welcome/welcomePage';
 import AppTopBar from './common/appBar';
 import SidePanel from './common/sidePanel';
+import LoadingMask from './common/loadingMask';
+import LoginDialog from './common/loginDialog';
+import WelcomePage from './welcome/welcomePage';
 import HallPage from './hall/hallPage';
 import GamePage from './game/gamePage';
 
@@ -46,14 +52,15 @@ import * as SocketState from './redux/states/socketState';
 import * as PageLocationAction from './redux/actions/pageLocationAction';
 import * as PageLocationState from './redux/states/pageLocationState';
 
-import * as GameAction from './redux/actions/localGameAction';
+import * as LocalGameAction from './redux/actions/localGameAction';
+import * as RemoteGameAction from './redux/actions/remoteGameAction';
 
 import * as HallAction from './redux/actions/hallAction';
-import * as HallState from './redux/states/hallState';
 import * as Request from './socket/request';
+import {errorToAuthTitle} from "./const/authErrors";
 
-// const socket = io('http://localhost:3000');
-// const socketIoMiddleware = createSocketIoMiddleWare(socket);
+const socket = io('http://localhost:3000');
+const socketIoMiddleware = createSocketIoMiddleWare(socket);
 
 const room = new Room([new AI(), new AI(), new AI(), new AI(), new AI()]);
 const localGameMiddleware = createLocalGameMiddleWare(room);
@@ -62,7 +69,7 @@ const logger = createLogger({collapsed: true});
 
 let store = createStore(reduxApp, applyMiddleware(
     reduxThunk,
-    // socketIoMiddleware,
+    socketIoMiddleware,
     localGameMiddleware,
     logger
 ));
@@ -70,7 +77,6 @@ let store = createStore(reduxApp, applyMiddleware(
 // store.subscribe(()=>{
 //     console.log('new client state', store.getState().localGame);
 // });
-
 
 let muiTheme = getMuiTheme({
     fontFamily: 'Noto Sans, sans-serif'
@@ -84,15 +90,39 @@ class MainWindow extends React.Component {
         injectTapEventPlugin();
 
         this.state = {
-            userName: null,
-            password: null,
-            sidePanelOpen: false
+            sidePanelOpen: false,
+            loginDialogShown: false,
+            register: false,
+            logoutDialogShown: false,
+            authFailDialogShown: false,
+            maskShown: false
         };
     }
 
+    componentWillReceiveProps(nextProps) {
+        let {auth, socket} = nextProps;
+        if (auth && auth.state == AuthState.AUTHENTICATED)
+            this.setState({loginDialogShown: false});
+        if (auth && auth.errorCode &&
+            auth.state == AuthState.UNAUTHENTICATED &&
+            this.props.auth.state != AuthState.UNAUTHENTICATED &&
+            !this.state.loginDialogShown) {
+            this.setState({authFailDialogShown: true});
+        }
+        if (socket && socket.state == SocketState.DISCONNECTED &&
+            this.props.socket.state == SocketState.CONNECTED) {
+            this.setState({maskShown: true});
+        } else if (socket && socket.state == SocketState.CONNECTED &&
+            this.props.socket.state == SocketState.DISCONNECTED) {
+            this.setState({maskShown: false});
+        }
+    }
+
     render() {
-        let {sidePanelOpen} = this.state;
-        let {dispatch, auth, socket, pageLocation, hall, localGame} = this.props;
+        let {sidePanelOpen, loginDialogShown, maskShown} = this.state;
+        let {dispatch, auth, socket, pageLocation, hall, localGame, remoteGame} = this.props;
+
+        let mask = maskShown ? <LoadingMask message="与服务器失去连接"/> : null;
 
         let currentPage;
         switch(pageLocation.state) {
@@ -100,58 +130,64 @@ class MainWindow extends React.Component {
                 currentPage = (
                     <GamePage
                         scene={localGame}
-                        onEnter={() => {dispatch(GameAction.fetch_game_local())}}
-                        prepare={() => {dispatch(GameAction.prepare_game_local())}}
-                        unprepare={() => {dispatch(GameAction.unprepare_game_local())}}
-                        leave={() => {dispatch(GameAction.leave_game_local())}}
-                        offerMajorAmount={x => {dispatch(GameAction.offer_major_amount_local(x))}}
-                        chooseMajorColor={x => {dispatch(GameAction.choose_major_color_local(x))}}
-                        reserveCards={x => {dispatch(GameAction.reserve_cards_local(x))}}
-                        chooseAColor={x => {dispatch(GameAction.choose_a_color_local(x))}}
-                        playCards={x => {dispatch(GameAction.play_cards_local(x))}}
+                        onEnter={() => {dispatch(LocalGameAction.fetch_game_local())}}
+                        prepare={() => {dispatch(LocalGameAction.prepare_game_local())}}
+                        unprepare={() => {dispatch(LocalGameAction.unprepare_game_local())}}
+                        leave={() => {dispatch(LocalGameAction.leave_game_local())}}
+                        offerMajorAmount={x => {dispatch(LocalGameAction.offer_major_amount_local(x))}}
+                        chooseMajorColor={x => {dispatch(LocalGameAction.choose_major_color_local(x))}}
+                        reserveCards={x => {dispatch(LocalGameAction.reserve_cards_local(x))}}
+                        chooseAColor={x => {dispatch(LocalGameAction.choose_a_color_local(x))}}
+                        playCards={x => {dispatch(LocalGameAction.play_cards_local(x))}}
 
-                        addRobot={(sid, robot) => {dispatch(GameAction.add_robot_local(sid, robot))}}
-                        removeRobot={sid => {dispatch(GameAction.remove_robot_local(sid))}}
+                        addRobot={(sid, robot) => {dispatch(LocalGameAction.add_robot_local(sid, robot))}}
+                        removeRobot={sid => {dispatch(LocalGameAction.remove_robot_local(sid))}}
 
-                        onMessageDismiss={() => {dispatch(GameAction.on_message_dismiss_local())}}
-                        onResultDismiss={() => {dispatch(GameAction.on_result_dismiss_local())}}
+                        onMessageDismiss={() => {dispatch(LocalGameAction.on_message_dismiss_local())}}
+                        onResultDismiss={() => {dispatch(LocalGameAction.on_result_dismiss_local())}}
 
-                        key={pageLocation}
+                        key={PageLocationState.VS_COM}
                     />);
                 break;
             case PageLocationState.HALL:
                 currentPage = (
                     <HallPage
-                        key={pageLocation}
+                        key={PageLocationState.HALL}
                         hall={hall}
-                        loadData={() => {
-                            if (hall.state != HallState.FETCHED)
-                                dispatch(HallAction.get_tables());
-                        }}
-                        onEnterTable={(content) => {
-                            dispatch(HallAction.enter_table(content))
-                        }}
+                        load={() => {dispatch(HallAction.fetch_hall())}}
+                        createGame={room => {dispatch(HallAction.create_room(room))}}
+                        enterRoom={(id, sid) => {dispatch(HallAction.enter_room(id, sid))}}
                     />);
                 break;
             case PageLocationState.GAME:
                 currentPage = (
                     <GamePage
-                        key={pageLocation}
+                        scene={remoteGame}
+                        onEnter={() => {dispatch(RemoteGameAction.fetch_game_remote())}}
+                        prepare={() => {dispatch(RemoteGameAction.prepare_game_remote())}}
+                        unprepare={() => {dispatch(RemoteGameAction.unprepare_game_remote())}}
+                        leave={() => {dispatch(RemoteGameAction.leave_game_remote())}}
+                        offerMajorAmount={x => {dispatch(RemoteGameAction.offer_major_amount_remote(x))}}
+                        chooseMajorColor={x => {dispatch(RemoteGameAction.choose_major_color_remote(x))}}
+                        reserveCards={x => {dispatch(RemoteGameAction.reserve_cards_remote(x))}}
+                        chooseAColor={x => {dispatch(RemoteGameAction.choose_a_color_remote(x))}}
+                        playCards={x => {dispatch(RemoteGameAction.play_cards_remote(x))}}
+
+                        addRobot={(sid, robot) => {dispatch(RemoteGameAction.add_robot_remote(sid, robot))}}
+                        removeRobot={sid => {dispatch(RemoteGameAction.remove_robot_remote(sid))}}
+
+                        onMessageDismiss={() => {dispatch(RemoteGameAction.on_message_dismiss_remote())}}
+                        onResultDismiss={() => {dispatch(RemoteGameAction.on_result_dismiss_remote())}}
+
+                        key={PageLocationState.GAME}
                     />);
                 break;
             case PageLocationState.WELCOME:
                 currentPage =
                     <WelcomePage
+                        key={PageLocationState.WELCOME}
                         socketState={socket.state}
                         auth={auth}
-                        requestLogin={(username, password) => {
-                            dispatch(AuthAction.authenticate(
-                                {type: Request.AUTH_TYPES.LOGIN, username: username, password: password}));
-                        }}
-                        requestRegister={(username, password) => {
-                            dispatch(AuthAction.authenticate(
-                                {type: Request.AUTH_TYPES.REG_AND_LOGIN, username: username, password: password}));
-                        }}
                         onRemove={(success) => {
                             if (success)
                                 dispatch(PageLocationAction.to_hall_page());
@@ -167,6 +203,7 @@ class MainWindow extends React.Component {
                 <div style={styles.root}>
                     <SidePanel
                         onClose={() => {this.setState({sidePanelOpen: !sidePanelOpen})}}
+                        online={socket.state == SocketState.CONNECTED && auth.state == AuthState.AUTHENTICATED}
                         currentPage={pageLocation.state}
                         changePage={(index) => {
                             switch (index) {
@@ -180,10 +217,72 @@ class MainWindow extends React.Component {
                         }}
                         open={sidePanelOpen}/>
                     <AppTopBar
+                        connected={socket.state == SocketState.CONNECTED}
+                        username={auth.state == AuthState.AUTHENTICATED ? auth.username : null}
                         onMenuButtonClicked={() => {this.setState({sidePanelOpen: !sidePanelOpen})}}
+                        onLogin={() => {this.setState({loginDialogShown: true, register: false})}}
+                        onRegister={() => {this.setState({loginDialogShown: true, register: true})}}
+                        onLogout={() => {this.setState({logoutDialogShown: true})}}
                     />
                     <div style={styles.content}>
-                        {currentPage}
+                        <ReactCSSTransitionGroup
+                            transitionName="fade"
+                            transitionAppear={true}
+                            transitionAppearTimeout={600}
+                            transitionEnterTimeout={600}
+                            transitionLeaveTimeout={600}>
+                            {currentPage}
+                        </ReactCSSTransitionGroup>
+                        <LoginDialog
+                            show={loginDialogShown}
+                            auth={auth}
+                            register={this.state.register}
+                            onCommit={(username, password) => {
+                                dispatch(AuthAction.authenticate(
+                                    {type: this.state.register ?
+                                        Request.AUTH_TYPES.REG_AND_LOGIN : Request.AUTH_TYPES.LOGIN,
+                                        username: username, password: password}));
+                            }}
+                            onCancel={() => {this.setState({loginDialogShown: false})}}
+                        />
+                        <Dialog
+                            title="确定要登出吗？"
+                            actions={[
+                                <FlatButton
+                                    label="确定"
+                                    primary={true}
+                                    onTouchTap={() => {
+                                        dispatch(AuthAction.logout());
+                                        this.setState({logoutDialogShown: false});
+                                    }}
+                                />,
+                                <FlatButton
+                                    label="取消"
+                                    primary={false}
+                                    onTouchTap={() => {this.setState({logoutDialogShown: false})}}
+                                />
+                            ]}
+                            modal={true}
+                            open={this.state.logoutDialogShown}
+                        />
+                        <Dialog
+                            title='验证失败'
+                            actions={[
+                                <FlatButton
+                                    label="确定"
+                                    primary={true}
+                                    onTouchTap={() => {
+                                        dispatch(PageLocationAction.to_welcome_page());
+                                        this.setState({authFailDialogShown: false});
+                                    }}
+                                />
+                            ]}
+                            modal={true}
+                            open={this.state.authFailDialogShown}
+                        >
+                            <p>{errorToAuthTitle(auth.errorCode)}</p>
+                        </Dialog>
+                        {mask}
                     </div>
                 </div>
             </MuiThemeProvider>
@@ -216,7 +315,8 @@ function select(state) {
         socket: state.socket,
         pageLocation: state.pageLocation,
         hall: state.hall,
-        localGame: state.localGame
+        localGame: state.localGame,
+        remoteGame: state.remoteGame
     }
 }
 

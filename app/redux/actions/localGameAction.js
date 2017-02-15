@@ -5,7 +5,6 @@
 
 //local, called from user(that is to say, react events)
 export const FETCH_GAME_LOCAL = 'FETCH_GAME_LOCAL';
-export const ENTER_GAME_LOCAL = 'ENTER_GAME_LOCAL';
 export const PREPARE_GAME_LOCAL = 'PREPARE_GAME_LOCAL';
 export const UNPREPARE_GAME_LOCAL = 'UNPREPARE_GAME_LOCAL';
 export const LEAVE_GAME_LOCAL = 'LEAVE_GAME_LOCAL';
@@ -23,9 +22,6 @@ export const REMOVE_ROBOT_LOCAL = 'REMOVE_ROBOT_LOCAL';
 
 export function fetch_game_local() {
     return { type: FETCH_GAME_LOCAL }
-}
-export function enter_game_local(sid) {
-    return { type: ENTER_GAME_LOCAL, sid: sid }
 }
 export function prepare_game_local() {
     return { type: PREPARE_GAME_LOCAL }
