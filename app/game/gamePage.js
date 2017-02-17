@@ -29,6 +29,7 @@ export default class GamePage extends Component {
             robotSid: -1,
         };
 
+        this.setFocusItem = this.setFocusItem.bind(this);
     }
 
     componentWillReceiveProps(nextProps) {
@@ -51,8 +52,8 @@ export default class GamePage extends Component {
             onEnter();
     }
 
-    onToolBarButtonClicked() {
-        this.props.onToolBarButtonClicked();
+    setFocusItem(target) {
+        this.focusItem = target;
     }
 
     render() {
@@ -69,7 +70,8 @@ export default class GamePage extends Component {
             scene,
             prepare, unprepare, leave, offerMajorAmount, chooseMajorColor,
             reserveCards, chooseAColor, playCards, onMessageDismiss,
-            addRobot, removeRobot
+            addRobot, removeRobot,
+            sendChat
         } = this.props;
 
         let leftWidth = height * 0.8;
@@ -93,11 +95,11 @@ export default class GamePage extends Component {
             overflow: 'hidden'
         };
 
-        if (scene.room) {
+        if (scene.synchronized && scene.room) {
             return (
                 <Measure includeMargin={false} onMeasure={(dimensions) => {
                     this.setState({dimensions})}} >
-                <div style={styles.root}>
+                    <div style={styles.root}>
                         <GameColumn
                             style={leftStyle}
                             room={scene.room}
@@ -115,30 +117,34 @@ export default class GamePage extends Component {
                             addRobot={sid => {this.setState({robotSid: sid, robotPickerShown: true})}}
                             removeRobot={removeRobot}
                         />
-                    <Paper zDepth={1} style={rightStyle}>
-                        <InformationColumn/>
-                    </Paper>
-                    <Snackbar
-                        open={this.state.snackbarShown}
-                        message={this.state.message}
-                        bodyStyle={{textAlign: 'center'}}
-                        autoHideDuration={2000}
-                        onRequestClose={() => {this.setState({snackbarShown: false}); onMessageDismiss();}}
-                    />
-                    <ResultDialog
-                        shown={this.state.resultShown}
-                        result={this.state.result}
-                        onClose={() => {this.setState({resultShown: false})}}
-                    />
-                    <RobotPickDialog
-                        shown={this.state.robotPickerShown}
-                        onCommit={(info) => {
-                            addRobot(this.state.robotSid, info);
-                            this.setState({robotPickerShown: false, robotSid: -1})
-                        }}
-                        onClose={() => {this.setState({robotPickerShown: false})}}
-                    />
-                </div>
+                        <Paper zDepth={1} style={rightStyle}>
+                            <InformationColumn
+                                setFocusItem={this.setFocusItem}
+                                scene={scene}
+                                sendChat={sendChat}
+                            />
+                        </Paper>
+                        <Snackbar
+                            open={this.state.snackbarShown}
+                            message={this.state.message}
+                            bodyStyle={{textAlign: 'center'}}
+                            autoHideDuration={2000}
+                            onRequestClose={() => {this.setState({snackbarShown: false}); onMessageDismiss();}}
+                        />
+                        <ResultDialog
+                            shown={this.state.resultShown}
+                            result={this.state.result}
+                            onClose={() => {this.setState({resultShown: false})}}
+                        />
+                        <RobotPickDialog
+                            shown={this.state.robotPickerShown}
+                            onCommit={(info) => {
+                                addRobot(this.state.robotSid, info);
+                                this.setState({robotPickerShown: false, robotSid: -1})
+                            }}
+                            onClose={() => {this.setState({robotPickerShown: false})}}
+                        />
+                    </div>
                 </Measure>
             )
         } else {

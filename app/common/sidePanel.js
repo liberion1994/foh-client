@@ -23,6 +23,9 @@ export default class SidePanel extends Component {
     constructor(props) {
         super(props);
     }
+    shouldComponentUpdate(nextProps, nextState) {
+        return nextProps.open != this.props.open;
+    }
 
     render() {
         let {currentPage, onClose, changePage, open, online} = this.props;

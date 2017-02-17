@@ -8,7 +8,9 @@ import {Types} from "foh-core";
 
 export default function localGame(state = {
     synchronized: false,
-    message: null
+    message: null,
+    histories: [],
+    chats: []
 }, action) {
     switch (action.type) {
         case Actions.ON_MESSAGE_DISMISS_LOCAL:
@@ -100,24 +102,27 @@ export default function localGame(state = {
             for (let i = 0; i < done.length; i ++) {
                 if (done[i].sid == action.content.sid) { ind = i; break; }
             }
-            return update(state, {room: {game: {currentTurn: {done: {[ind]: {
+            const tmp12_0 = update(state, {room: {game: {currentTurn: {maxSid: {$set: action.content.sid}}}}});
+            return update(tmp12_0, {room: {game: {currentTurn: {done: {[ind]: {
                 content: {majorShown: {$set: action.content.majors}}}}}}}});
         case Actions.ON_BECOME_MASTER_LOCAL:
-            const tmp12_0 = {...state, ...{message: state.room.seats[action.content.sid].playerName + '成为了庄家'}};
-            return update(tmp12_0, {room: {game: {masterSid: {$set: action.content.sid}}}});
+            const tmp13_0 = {...state, ...{message: state.room.seats[action.content.sid].playerName + '成为了庄家'}};
+            return update(tmp13_0, {room: {game: {masterSid: {$set: action.content.sid}}}});
         case Actions.ON_NEW_TURN_BEGIN_LOCAL:
-            return update(state, {room: {game: {currentTurn: {$set: action.content.turn}}}});
+            const tmp14_0 = update(state, {histories: {$push: [state.room.game.currentTurn]}});
+            return update(tmp14_0, {room: {game: {currentTurn: {$set: action.content.turn}}}});
         case Actions.ON_UPDATE_CARDS_IN_HAND_LOCAL:
             return update(state, {room: {game: {cards: {$set: action.content.cards}}}});
         case Actions.ON_BECOME_SUB_MASTER_LOCAL:
-            const tmp13_0 = {...state, ...{message: state.room.seats[action.content.sid].playerName + '成为了副庄'}};
-            return update(tmp13_0, {room: {game: {subMasterSid: {$set: action.content.sid}}}});
+            const tmp16_0 = {...state, ...{message: state.room.seats[action.content.sid].playerName + '成为了副庄'}};
+            return update(tmp16_0, {room: {game: {subMasterSid: {$set: action.content.sid}}}});
         case Actions.ON_WIN_IN_PLAY_CARDS_LOCAL:
             let totalScore = 0;
             for (let i = 0; i < action.content.scores.length; i ++)
                 totalScore += action.content.scores[i];
-            const tmp17_0 = update(state, {room: {game: {points: {[action.content.sid]: {$apply: x => x + totalScore}}}}});
-            return update(tmp17_0, {room: {game: {caught5Heart: {[action.content.sid]: {$push: action.content.fohs}}}}});
+            const tmp17_0 = update(state, {room: {game: {currentTurn: {maxSid: {$set: action.content.sid}}}}});
+            const tmp17_1 = update(tmp17_0, {room: {game: {points: {[action.content.sid]: {$apply: x => x + totalScore}}}}});
+            return update(tmp17_1, {room: {game: {caught5Heart: {[action.content.sid]: {$push: action.content.fohs}}}}});
         case Actions.ON_WIN_RESERVED_CARDS_LOCAL:
             return update(state, {room: {game: {points: {[action.content.sid]: {$apply: x => x + action.content.score}}}}});
         case Actions.ON_DROP_CARDS_FAIL_LOCAL:
@@ -127,7 +132,8 @@ export default function localGame(state = {
             return update(state, {room: {game: {currentTurn: {done: {[0]: {
                 content: {cards: {$set: action.content.actuallyPlayed}}}}}}}});
         case Actions.ON_GAME_OVER_LOCAL:
-            return update(state, {room: {game: {result: {$set: action.content.result}}}});
+            const tmp21_0 = {...state, ...{histories: []}};
+            return update(tmp21_0, {room: {game: {result: {$set: action.content.result}}}});
         case Actions.ON_LEVEL_UP_LOCAL:
             let cur1 = state;
             for (let i = 0; i < 5; i ++) {

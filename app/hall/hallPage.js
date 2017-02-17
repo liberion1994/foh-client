@@ -83,10 +83,9 @@ export default class HallPage extends Component {
     }
 
     render() {
-
         let {hall, createGame, enterRoom} = this.props;
         if (!hall.synchronized)
-            return <div style={styles.root}><h1>同步中</h1></div>;
+            return <div style={styles.root}></div>;
 
         let createBtn =
             <FloatingActionButton

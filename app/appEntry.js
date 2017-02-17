@@ -39,11 +39,11 @@ import FlatButton from 'material-ui/FlatButton';
 /****custom widgets****/
 import AppTopBar from './common/appBar';
 import SidePanel from './common/sidePanel';
-import LoadingMask from './common/loadingMask';
 import LoginDialog from './common/loginDialog';
 import WelcomePage from './welcome/welcomePage';
 import HallPage from './hall/hallPage';
 import GamePage from './game/gamePage';
+import SettingsPage from './settings/settingPage';
 
 /****redux****/
 import * as AuthAction from './redux/actions/authAction';
@@ -94,9 +94,12 @@ class MainWindow extends React.Component {
             loginDialogShown: false,
             register: false,
             logoutDialogShown: false,
-            authFailDialogShown: false,
-            maskShown: false
+            authFailDialogShown: false
         };
+
+        setInterval(() => {
+            this.setState({abc: Math.random()});
+        }, 1000);
     }
 
     componentWillReceiveProps(nextProps) {
@@ -109,20 +112,39 @@ class MainWindow extends React.Component {
             !this.state.loginDialogShown) {
             this.setState({authFailDialogShown: true});
         }
-        if (socket && socket.state == SocketState.DISCONNECTED &&
-            this.props.socket.state == SocketState.CONNECTED) {
-            this.setState({maskShown: true});
-        } else if (socket && socket.state == SocketState.CONNECTED &&
-            this.props.socket.state == SocketState.DISCONNECTED) {
-            this.setState({maskShown: false});
+    }
+
+    shouldComponentUpdate(nextProps, nextState) {
+        if (
+            this.props.pageLocation == nextProps.pageLocation &&
+            this.props.auth == nextProps.auth &&
+            this.props.socket == nextProps.socket && (() => {
+            for (let prop in nextState) {
+                if (nextState[prop] != this.state[prop])
+                    return false;
+            }
+            return true;
+        })()) {
+            switch (nextProps.pageLocation.state) {
+                case PageLocationState.VS_COM:
+                    return this.props.localGame != nextProps.localGame;
+                case PageLocationState.HALL:
+                    return this.props.hall != nextProps.hall;
+                case PageLocationState.GAME:
+                case PageLocationState.SETTINGS:
+                    return this.props.remoteGame != nextProps.remoteGame;
+                //TODO 其他页面更新此函数
+                default:
+                    return false;
+            }
+        } else {
+            return true;
         }
     }
 
     render() {
-        let {sidePanelOpen, loginDialogShown, maskShown} = this.state;
+        let {sidePanelOpen, loginDialogShown} = this.state;
         let {dispatch, auth, socket, pageLocation, hall, localGame, remoteGame} = this.props;
-
-        let mask = maskShown ? <LoadingMask message="与服务器失去连接"/> : null;
 
         let currentPage;
         switch(pageLocation.state) {
@@ -142,6 +164,8 @@ class MainWindow extends React.Component {
 
                         addRobot={(sid, robot) => {dispatch(LocalGameAction.add_robot_local(sid, robot))}}
                         removeRobot={sid => {dispatch(LocalGameAction.remove_robot_local(sid))}}
+
+                        sendChat={(chat) => {}}
 
                         onMessageDismiss={() => {dispatch(LocalGameAction.on_message_dismiss_local())}}
                         onResultDismiss={() => {dispatch(LocalGameAction.on_result_dismiss_local())}}
@@ -176,11 +200,16 @@ class MainWindow extends React.Component {
                         addRobot={(sid, robot) => {dispatch(RemoteGameAction.add_robot_remote(sid, robot))}}
                         removeRobot={sid => {dispatch(RemoteGameAction.remove_robot_remote(sid))}}
 
+                        sendChat={(chat) => {dispatch(RemoteGameAction.send_chat_remote(chat))}}
+
                         onMessageDismiss={() => {dispatch(RemoteGameAction.on_message_dismiss_remote())}}
                         onResultDismiss={() => {dispatch(RemoteGameAction.on_result_dismiss_remote())}}
 
                         key={PageLocationState.GAME}
                     />);
+                break;
+            case PageLocationState.SETTINGS:
+                currentPage = <SettingsPage/>;
                 break;
             case PageLocationState.WELCOME:
                 currentPage =
@@ -188,12 +217,6 @@ class MainWindow extends React.Component {
                         key={PageLocationState.WELCOME}
                         socketState={socket.state}
                         auth={auth}
-                        onRemove={(success) => {
-                            if (success)
-                                dispatch(PageLocationAction.to_hall_page());
-                            else
-                                dispatch(PageLocationAction.to_vs_com_page());
-                        }}
                     />;
                 break;
         }
@@ -282,7 +305,6 @@ class MainWindow extends React.Component {
                         >
                             <p>{errorToAuthTitle(auth.errorCode)}</p>
                         </Dialog>
-                        {mask}
                     </div>
                 </div>
             </MuiThemeProvider>

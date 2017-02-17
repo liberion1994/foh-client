@@ -11,14 +11,14 @@ import Immutable from "immutable";
 import ToggleStar from "material-ui/svg-icons/toggle/star";
 import ToggleStarBorder from "material-ui/svg-icons/toggle/star-border";
 import ToggleStarHalf from "material-ui/svg-icons/toggle/star-half";
+import ContentAdd from "material-ui/svg-icons/content/add";
 import FaHandGrabO from "react-icons/lib/fa/hand-grab-o";
 import FaHandPaperO from "react-icons/lib/fa/hand-paper-o";
-import TiFlag from "react-icons/lib/ti/flag";
 import {Types, CardUtil} from "foh-core";
 
 const iconPrepared = <FaHandPaperO/>;
 const iconNotPrepared = <FaHandGrabO/>;
-const iconEmpty = <TiFlag/>;
+const iconEmpty = <ContentAdd/>;
 const iconMaster = <ToggleStar/>;
 const iconSubMaster = <ToggleStarHalf/>;
 const iconSlave = <ToggleStarBorder/>;
@@ -69,10 +69,10 @@ class SeatArea extends Component {
                             choosable={false} align={align} rotated={rotated}
                             cardsEnterFrom={enterFrom}/>;
                     } else {
-                        let number = seat.done.content.amount;
+                        let number = <span style={styles.cardStyle}>{seat.done.content.amount}</span>;
                         let tmpStyle = labelBottom ?
-                        {position: 'absolute', fontSize: 20, left: 0, right: 0, bottom: 0} :
-                        {position: 'absolute', fontSize: 20, left: 0, right: 0, top: 0};
+                        {position: 'absolute', fontSize: 20, left: 0, right: 0, bottom: 10} :
+                        {position: 'absolute', fontSize: 20, left: 0, right: 0, top: 10};
                         actionDisplay =
                             <div style={{...innerStyle, ...{textAlign: align}}}>
                                 <div style={tmpStyle}>{number}</div>
@@ -82,12 +82,12 @@ class SeatArea extends Component {
                 case Types.GameAction.CHOOSE_MAJOR_COLOR:
                 case Types.GameAction.CHOOSE_A_COLOR:
                     let tmpStyle2 = labelBottom ?
-                    {position: 'absolute', fontSize: 20, left: 0, right: 0, bottom: 0} :
-                    {position: 'absolute', fontSize: 20, left: 0, right: 0, top: 0};
+                    {position: 'absolute', fontSize: 20, left: 0, right: 0, bottom: 10} :
+                    {position: 'absolute', fontSize: 20, left: 0, right: 0, top: 10};
                     let color = seat.done.content.color;
                     let inner = (color == '♥' || color == '♦') ?
-                        <span style={{color: 'red'}}>{color}</span> :
-                        <span style={{color: 'black'}}>{color}</span>;
+                        <span style={{...styles.cardStyle, ...{color: 'red'}}}>{color}</span> :
+                        <span style={{...styles.cardStyle, ...{color: 'black'}}}>{color}</span>;
                     actionDisplay =
                         <div style={{...innerStyle, ...{textAlign: align}}}>
                             <div style={tmpStyle2}>{inner}</div>
@@ -156,7 +156,8 @@ class TableArea extends Component {
     render() {
         let {
             style, room,
-            addRobot, removeRobot
+            addRobot, removeRobot,
+            reservedCardsShown
         } = this.props;
         let seats = [];
         for (let i = 0; i < 5; i ++) {
@@ -171,6 +172,16 @@ class TableArea extends Component {
         let gameStarted = false;
         if (room.game) {
             gameStarted = true;
+            let number = room.game.majorNumber;
+            switch (number) {
+                case 10: number = 0; break;
+                case 11: number = 'J'; break;
+                case 12: number = 'Q'; break;
+                case 13: number = 'K'; break;
+                case 14: number = 'A'; break;
+                default:
+                    break;
+            }
             info = <span>
                 <div>{room.game.currentTurn.action + '阶段' + (room.countDown != null ?
                     ("00" + room.countDown).slice(-2) : '')}</div>
@@ -178,12 +189,19 @@ class TableArea extends Component {
                     <Chip style={{margin: '0 auto'}}>
                         <Avatar size={32} icon={iconMaster} />
                         <span>
-                            {!room.game.majorColor ? '-' : (room.game.majorColor == '♥' || room.game.majorColor == '♦') ?
-                            <span style={{color: 'red'}}>{room.game.majorColor}</span> :
-                            <span style={{color: 'black'}}>{room.game.majorColor}</span>}{room.game.majorNumber}{' | '}
-                            {!room.game.aColor ? '-' : (room.game.aColor == '♥' || room.game.aColor == '♦') ?
-                            <span style={{color: 'red'}}>{room.game.aColor}</span> :
-                            <span style={{color: 'black'}}>{room.game.aColor}</span>}A
+                            {!room.game.majorColor ?
+                                '-' + number :
+                                (room.game.majorColor == '♥' || room.game.majorColor == '♦') ?
+                                    <span style={{color: 'red'}}>{room.game.majorColor + number}</span> :
+                                    <span style={{color: 'black'}}>{room.game.majorColor + number}</span>
+                            }
+                            {' | '}
+                            {!room.game.aColor ?
+                                '-A' :
+                                (room.game.aColor == '♥' || room.game.aColor == '♦') ?
+                                    <span style={{color: 'red'}}>{room.game.aColor + 'A'}</span> :
+                                    <span style={{color: 'black'}}>{room.game.aColor + 'A'}</span>
+                            }
                         </span>
                     </Chip>
 
@@ -213,7 +231,7 @@ class TableArea extends Component {
         let sids = [];
         for (let i = 0; i < 5; i ++) sids[i] = (mySid + i) % 5;
 
-        let centerArea = this.props.reservedCardsShown ?
+        let centerArea = reservedCardsShown ?
             <CardGroupView
                 style={{position: 'absolute', left: '25%', top: '33.3%', right: '25%', bottom: '33.3%'}}
                 cards={room.game.reservedCards ? room.game.reservedCards : []}
@@ -436,7 +454,9 @@ export default class GameColumn extends Component {
         let sid = room.sid;
         let isCurrent = !room.game ? false : room.game.currentTurn.remainedSid[0] == sid;
         let prepared = room.seats[sid].prepared;
-        let accessToReservedCards = room.game ? (room.game.reservedCards ? true : false) : false;
+        let accessToReservedCards = room.game ? (
+            room.game.reservedCards && stage == Types.GameAction.PLAY_CARDS ? true : false
+        ) : false;
         let majorNumber = room.game ? room.game.majorNumber : null;
         let inHand = room.game ? room.game.cards : [];
 
@@ -504,5 +524,10 @@ const styles = {
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden'
+    },
+    cardStyle: {
+        padding: 8,
+        borderRadius: '5px',
+        boxShadow: '1px 1px 3px #aaaaaa'
     }
 };

@@ -69,6 +69,8 @@ class Card extends Component {
         let color = this.props.color;
         let number = this.props.number;
         switch (number) {
+            case 10:
+                number = 0; break;
             case 11:
                 number = 'J'; break;
             case 12:

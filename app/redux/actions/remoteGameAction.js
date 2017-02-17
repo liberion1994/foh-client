@@ -14,6 +14,8 @@ export const RESERVE_CARDS_REMOTE = 'RESERVE_CARDS_REMOTE';
 export const CHOOSE_A_COLOR_REMOTE = 'CHOOSE_A_COLOR_REMOTE';
 export const PLAY_CARDS_REMOTE = 'PLAY_CARDS_REMOTE';
 
+export const SEND_CHAT_REMOTE = 'SEND_CHAT_REMOTE';
+
 export const ON_MESSAGE_DISMISS_REMOTE = 'ON_MESSAGE_DISMISS_REMOTE';
 export const ON_RESULT_DISMISS_REMOTE = 'ON_RESULT_DISMISS_REMOTE';
 
@@ -49,6 +51,11 @@ export function choose_a_color_remote(color) {
 export function play_cards_remote(cards) {
     return { type: PLAY_CARDS_REMOTE, cards: cards}
 }
+
+export function send_chat_remote(chat) {
+    return { type: SEND_CHAT_REMOTE, chat: chat }
+}
+
 export function on_message_dismiss_remote() {
     return { type: ON_MESSAGE_DISMISS_REMOTE }
 }
@@ -71,6 +78,7 @@ export const ON_ERROR_REMOTE = 'ON_ERROR_REMOTE';
 export const ON_SYNCHRONIZE_REMOTE = 'ON_SYNCHRONIZE_REMOTE';
 export const ON_GAME_ACTION_REMOTE = 'ON_GAME_ACTION_REMOTE';
 export const ON_HEART_BEAT_REMOTE = 'ON_HEART_BEAT_REMOTE';
+export const ON_CHAT_REMOTE = 'ON_CHAT_REMOTE';
 
 export const ON_NEW_ACTION_REMOTE = 'ON_NEW_ACTION_REMOTE';
 export const ON_ENTER_GAME_REMOTE = 'ON_ENTER_GAME_REMOTE';
@@ -106,6 +114,9 @@ export function on_error_remote(info) {
 }
 export function on_heart_beat_remote(countDown) {
     return {type: ON_HEART_BEAT_REMOTE, countDown: countDown};
+}
+export function on_chat_remote(chat) {
+    return {type: ON_CHAT_REMOTE, chat: chat};
 }
 
 //action

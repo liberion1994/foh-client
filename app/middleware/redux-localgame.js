@@ -230,7 +230,11 @@ export const createLocalGameMiddleWare = room => store => {
                 }
                 break;
             case Events.GameOver:
-                store.dispatch(GameActions.on_game_over_local(event.content));
+                if (!force) {
+                    postpone(event, false, 2000); break;
+                } else {
+                    store.dispatch(GameActions.on_game_over_local(event.content));
+                }
                 break;
             case Events.LevelUp:
                 store.dispatch(GameActions.on_level_up_local(event.content));

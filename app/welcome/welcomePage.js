@@ -28,36 +28,22 @@ export default class WelcomePage extends Component {
     }
 
     componentDidMount() {
-        let {minDisplayDuration, timeoutDuration, maxDisplayDuration, tryAutoLogin} = this.props;
+        let {minDisplayDuration, timeoutDuration, maxDisplayDuration} = this.props;
 
         this.getRandomCardSet();
 
         this.minDisplayDurationTimer = setTimeout(() => {
-            let {auth, socketState, onRemove} = this.props;
-            if (auth.state == AuthState.AUTHENTICATED &&
-                socketState == SocketState.CONNECTED) {
-                onRemove(true);
-            } else if (socketState != SocketState.CONNECTED) {
-                this.setState({waiting: true});
+            let {socketState} = this.props;
+            this.setState({waiting: true});
+            if (socketState != SocketState.CONNECTED) {
                 this.timeoutDurationTimer = setTimeout(() => {
                     let {socketState} = this.props;
                     if (socketState != SocketState.CONNECTED) {
                         this.setState({timeout: true});
-                        this.maxDisplayDurationTimer = setTimeout(() =>{
-                            let {socketState, onRemove} = this.props;
-                            if (socketState != SocketState.CONNECTED)
-                                onRemove(false);
-                        }, maxDisplayDuration - timeoutDuration);
                     }
                 }, timeoutDuration - minDisplayDuration);
             }
         }, minDisplayDuration);
-    }
-
-    componentWillReceiveProps(nextProps) {
-        let {socketState} = nextProps;
-        if (socketState == SocketState.CONNECTED)
-            this.setState({waiting: false, timeout: false});
     }
 
     componentWillUnmount() {
@@ -65,21 +51,25 @@ export default class WelcomePage extends Component {
             clearTimeout(this.minDisplayDurationTimer);
         if (this.timeoutDurationTimer)
             clearTimeout(this.timeoutDurationTimer);
-        if (this.maxDisplayDurationTimer)
-            clearTimeout(this.maxDisplayDurationTimer);
     }
 
     render() {
 
         let {waiting, timeout, randomCards} = this.state;
+        let {auth, socketState} = this.props;
         let waitingTip =
             <div style={{
                 opacity: waiting || timeout ? 1 : 0,
                 transition: 'all 1s ease',
-                paddingBottom: 30, paddingLeft: 30, paddingRight: 30}}>
-                <Paper zDepth={1} style={{padding: 10}}>
-                    <CircularProgress/>
-                    <div>{timeout ? '网络似乎有问题' : '连接中...'}</div>
+                position: 'relative', height: 80,
+                marginBottom: 30, marginLeft: 30, marginRight: 30}}>
+                <Paper zDepth={1} style={{
+                    padding:10, position: 'absolute', bottom: 0, left: 0, right: 0
+                }}>
+                    {socketState != SocketState.CONNECTED ?
+                        (<div><CircularProgress/><div>{timeout ? '网络似乎有问题' : '连接中...'}</div></div>) :
+                        (<div>{auth.state == AuthState.AUTHENTICATED ? '已登录' : '尚未登录'}</div>)
+                    }
                 </Paper>
             </div>;
         return (
